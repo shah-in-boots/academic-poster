@@ -1,0 +1,51 @@
+---
+title: "A Quarto + Typst Research Poster"
+subtitle: "Customizable and reusable poster workflow"
+author:
+  - name: "Ada Lovelace"
+    affiliation: "Department of Computational Methods"
+  - name: "Alan Turing"
+    affiliation: "Institute for Mathematical Research"
+format:
+  research-poster-typst:
+    poster-width: 48in
+    poster-height: 36in
+    poster-margin-x: 0.8in
+    poster-margin-y: 0.6in
+    poster-columns: 3
+    poster-column-gap: 0.45in
+    poster-column-widths: [1.1fr, 1fr, 0.9fr]
+    poster-header-height: 16%
+    poster-footer-height: 8%
+    poster-primary: rgb("#1f3c88")
+    poster-secondary: rgb("#00a6a6")
+    poster-section-bg: rgb("#edf3ff")
+    poster-footer-bg: rgb("#1f3c88")
+    footer-left: "Scan for preprint"
+    footer-center: "International Conference on Research Posters 2026"
+    footer-right: "contact@lab.example"
+execute:
+  echo: false
+---
+
+# Background
+
+This format is designed to reuse familiar Quarto metadata (`title`, `subtitle`, `author`, and affiliations) while providing poster-specific controls for layout, branding, and structure.
+
+# Methods
+
+- Poster dimensions, margins, and column settings are configurable in YAML.
+- Header and footer regions are fixed layout zones with customizable size and colors.
+- Section styling is controlled through theme keys.
+
+# Results
+
+You can structure each column naturally with Markdown headings and content blocks.
+
+## Example subsection
+
+The default style gives visual distinction across section levels while preserving readability at large poster scales.
+
+# Conclusion
+
+This extension is intended as a practical starting point for a reusable academic poster workflow using Quarto and Typst.
