@@ -1,0 +1,11 @@
+title: Research Poster (Typst)
+author: Your Name
+version: 0.1.0
+quarto-required: ">=1.6.0"
+contributes:
+  formats:
+    research-poster-typst:
+      template-partials:
+        - typst-show.typ
+      format-resources:
+        - typst-template.typ
