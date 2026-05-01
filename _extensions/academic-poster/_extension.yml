@@ -1,10 +1,12 @@
-title: Research Poster (Typst)
+title: Academic Poster (Typst)
 author: Your Name
 version: 0.1.0
 quarto-required: ">=1.6.0"
 contributes:
   formats:
-    research-poster-typst:
+    typst:
+      filters:
+        - poster-columns.lua
       template-partials:
         - typst-show.typ
       format-resources:

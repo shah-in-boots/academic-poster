@@ -1,0 +1,7 @@
+.quarto/
+example.pdf
+example.typ
+/typst-template.typ
+/figures/
+
+/.luarc.json

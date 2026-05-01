@@ -1,0 +1,13 @@
+color:
+  palette:
+    cardinal: "#b01c32"
+    cardinal-dark: "#6f1020"
+    blush: "#f8e8eb"
+    ink: "#17212b"
+    paper: "#ffffff"
+  background: paper
+  foreground: ink
+  primary: cardinal
+  secondary: cardinal-dark
+  tertiary: blush
+  light: blush

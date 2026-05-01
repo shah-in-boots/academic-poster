@@ -1,0 +1,187 @@
+---
+title: "Neurologic Injury Profiles in Atrial Fibrillation Ablation"
+subtitle: "A Quarto + Typst academic poster example with brand colors, cards, callouts, and figures"
+author:
+  - name: "Ada Lovelace"
+    affiliation: "Department of Computational Methods"
+  - name: "Alan Turing"
+    affiliation: "Institute for Mathematical Research"
+brand: _brand.yml
+format:
+  academic-poster-typst:
+    poster-width: 56in
+    poster-height: 31.5in
+    margin:
+      x: 0.55in
+      y: 0.45in
+    fontsize: 18pt
+    poster-column-gap: 0.55in
+    poster-column-widths: [0.95fr, 1.35fr, 0.95fr]
+    poster-header-height: 15%
+    poster-footer-height: 6%
+    poster-row-gap: 0.35in
+    poster-corner-radius: 7pt
+    poster-feature-inset: 0.32in
+    poster-title-size: 1.42em
+    poster-subtitle-size: 0.66em
+    poster-author-size: 0.52em
+    poster-institution-size: 0.46em
+    poster-h1-size: 0.78em
+    poster-h2-size: 0.72em
+    poster-h3-size: 0.68em
+    poster-card-body-inset: "(x: 0.42em, y: 0.28em)"
+    poster-card-gap: 0.26em
+    poster-callout-size: 0.78em
+    poster-callout-large-size: 0.9em
+    footer-left: "Scan for preprint"
+    footer-center: "Heart Rhythm Scientific Sessions 2026"
+    footer-right: "#HRS2026"
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(ggplot2)
+
+brand <- list(
+  primary = "#b01c32",
+  secondary = "#6f1020",
+  blush = "#f8e8eb",
+  ink = "#17212b"
+)
+
+events <- data.frame(
+  year = rep(2021:2026, each = 3),
+  energy = rep(c("PFA", "RFA", "Cryo"), times = 6),
+  reports = c(0, 82, 51, 0, 91, 58, 3, 105, 62, 26, 112, 67, 94, 119, 71, 128, 123, 73)
+)
+
+proportions <- data.frame(
+  energy = c("PFA", "RFA", "Cryo"),
+  neurologic = c(2.9, 1.1, 0.9),
+  lower = c(2.3, 0.8, 0.6),
+  upper = c(3.6, 1.5, 1.3)
+)
+
+modality_colors <- c(PFA = brand$primary, RFA = "#4b5563", Cryo = "#9ca3af")
+
+theme_poster <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title = element_text(face = "bold", color = brand$secondary),
+      plot.subtitle = element_text(color = brand$ink),
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      axis.title = element_text(face = "bold"),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      plot.background = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "white", color = NA)
+    )
+}
+
+dir.create("figures", showWarnings = FALSE)
+
+p_events <- ggplot(events, aes(year, reports, color = energy, group = energy)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.8) +
+  scale_color_manual(values = modality_colors) +
+  scale_x_continuous(breaks = 2021:2026) +
+  labs(
+    title = "Reported neurologic events by ablation modality",
+    x = NULL,
+    y = "Reports"
+  ) +
+  theme_poster()
+
+p_proportions <- ggplot(proportions, aes(energy, neurologic, fill = energy)) +
+  geom_col(width = 0.62) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.18, linewidth = 0.8) +
+  scale_fill_manual(values = modality_colors) +
+  labs(
+    title = "Neurologic event proportion among modality reports",
+    x = NULL,
+    y = "Neurologic reports (%)"
+  ) +
+  theme_poster() +
+  theme(legend.position = "none")
+
+ggsave("figures/reported-events.png", p_events, width = 7.6, height = 2.8, dpi = 200, bg = "white")
+ggsave("figures/event-proportions.png", p_proportions, width = 7.6, height = 2.7, dpi = 200, bg = "white")
+```
+
+::: {.poster-column}
+
+# Background {.compact}
+
+Pulsed field ablation (PFA) is a nonthermal strategy for atrial fibrillation ablation. Its theoretical advantages include myocardial selectivity and reduced collateral injury, but post-market neurologic safety signals remain incompletely characterized.
+
+# Objective {.compact}
+
+Compare the profile of neurologic adverse event reports across PFA, radiofrequency ablation (RFA), and cryoablation using a reproducible poster workflow.
+
+# Methods {.compact}
+
+- Simulated adverse event report counts by year and ablation modality.
+- Events were grouped into symptomatic neurologic and embolic categories.
+- Report profiles were summarized before and after the introduction of PFA.
+- The poster uses ordinary Markdown sections plus layout classes.
+
+# Notes {.compact .light}
+
+This example is intentionally synthetic. It demonstrates layout, figure placement, and theming rather than making scientific claims.
+
+:::
+
+::: {.poster-column .poster-feature}
+
+# Key Findings {.compact .inverse}
+
+::: {.poster-callout .large}
+Neurologic reports increase after PFA adoption in this simulated surveillance dataset.
+:::
+
+![](figures/reported-events.png){width=100%}
+
+::: {.poster-callout .light}
+The central `.poster-feature` column behaves like a revealjs slide modifier: add a class and the panel changes without touching Typst.
+:::
+
+![](figures/event-proportions.png){width=100%}
+
+::: {.poster-callout .secondary}
+Poster-wide options such as `poster-h1-size`, `poster-h2-size`, `poster-card-gap`, and `poster-callout-size` control typography and spacing for the whole document.
+:::
+
+:::
+
+::: {.poster-column}
+
+# Results {.compact}
+
+| Modality | Reports | Neurologic % |
+|---|---:|---:|
+| PFA | 8,787 | 2.9 |
+| RFA | 22,761 | 1.1 |
+| Cryo | 5,188 | 0.9 |
+
+The simulated PFA series shows a higher proportion of neurologic reports than thermal energy modalities. The example uses simple generated data so that the poster can be rendered and modified locally.
+
+# Discussion {.compact}
+
+The major design pattern is intentionally close to revealjs:
+
+- Add `.poster-column` to create an explicit layout region.
+- Add `.poster-feature` for a high-contrast results panel.
+- Add `.poster-callout` for short emphasized claims.
+- Add heading classes like `.compact`, `.light`, `.secondary`, or `.plain` to adjust cards.
+
+# Takeaway {.compact .secondary}
+
+Quarto metadata, `_brand.yml` colors, executable figures, and simple Markdown classes can drive a poster that remains editable as plain text.
+
+:::
