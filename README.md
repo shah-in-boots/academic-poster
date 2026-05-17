@@ -1,254 +1,319 @@
 # academic-poster
 
-A Quarto Typst custom format for configurable academic posters.
-
-The extension lives in `_extensions/academic-poster` and is used with:
+A Quarto Typst custom format for academic research posters. The whole thing is plain Markdown plus YAML, with a small Typst template and a Lua filter handling the layout.
 
 ```yaml
 format:
   academic-poster-typst:
-    ...
+    poster-size: 48x36in
+    fontsize: 22pt
+    poster-scale: default
 ```
-
-## Design Goals
-
-- Reuse Quarto metadata where practical: `title`, `subtitle`, `author`, author `affiliation`, `institution`, `mainfont`, `fontsize`, `margin`, and `columns`.
-- Keep poster-specific controls namespaced with `poster-*`.
-- Let ordinary level-1 Markdown headings create poster section cards.
-- Support both simple flowing columns and explicit unequal-width poster columns.
-
-## Quick Start
-
-Render the included example from the repository root:
 
 ```bash
 quarto render example.qmd
 ```
 
-The example uses R + ggplot2 to generate two local figure PNGs in `figures/`, then places them into a PowerPoint-style poster layout.
+---
 
-For another project, copy `_extensions/academic-poster` into that project and set `format: academic-poster-typst` in a `.qmd` file.
+## Mental Model
 
-## Brand Colors
-
-Quarto Typst exposes `_brand.yml` colors as Typst expressions such as `brand-color.primary` or, more safely, `brand-color.at("primary", default: rgb("#b01c32"))`.
-
-This extension uses brand defaults for poster colors when available. You can add a `_brand.yml` like:
-
-```yaml
-color:
-  palette:
-    cardinal: "#b01c32"
-    cardinal-dark: "#6f1020"
-    blush: "#f8e8eb"
-    ink: "#17212b"
-  background: white
-  foreground: ink
-  primary: cardinal
-  secondary: cardinal-dark
-  tertiary: blush
-  light: blush
+```
+your-poster.qmd ──► poster-columns.lua ──► typst-show.typ ──► poster() in typst-template.typ
+   (YAML + MD)        (Pandoc filter)        (template partial)       (Typst layout)
 ```
 
-Then opt in from a document:
+1. **`your-poster.qmd`** — Quarto/Markdown source. YAML keys drive layout; level-1 headings become cards; `.poster-column` / `.poster-callout` / `.poster-feature` divs structure the page.
+2. **`poster-columns.lua`** — Pandoc filter that:
+   - Resolves `poster-size` aliases (`a0`, `48x36in`, ...) into width/height.
+   - Wraps level-1 headings into `#poster-card(role: ..., variant: ...)[...]` calls.
+   - Converts `.poster-column` Divs into a `#poster-grid(...)` call.
+   - Builds `typography:`, `spacing:`, `colors:` dict literals from nested YAML maps and stashes them as `resolved-*` meta values.
+   - Resolves author affiliations into a single institutions string.
+3. **`typst-show.typ`** — Pandoc template partial that emits a single `#show: poster.with(...)` call, splicing in the resolved meta.
+4. **`typst-template.typ`** — All defaults, helpers, and the top-level `poster()` show rule live here.
+
+When you want to change a default, you change exactly one place: [_extensions/academic-poster/typst-template.typ](_extensions/academic-poster/typst-template.typ) (the three `DEFAULT-*` dicts at the top).
+
+---
+
+## Sizing Model
+
+Everything typographic is expressed as a multiple of the document `fontsize`. Everything structural is expressed in absolute lengths or container percentages. There are three unit families and they map to roles cleanly:
+
+| Use | Unit | Why |
+|---|---|---|
+| Type sizes (title, body, card titles, callouts) | `em` | Scales with `fontsize`; one knob changes everything |
+| Per-element padding and gaps around text | `em` | Stays proportional to type size |
+| Poster paper dimensions, margins, column gutters | `in` / `cm` / `mm` / `pt` | Typst `%` does not work for `page` size |
+| Header height, footer height, logo width inside header | `%` | Container-relative; lets you target a fraction of the body grid |
+| Column widths | `fr` (or bare number, auto-suffixed) | Typst grid fractional units |
+
+A single knob — `poster-scale: compact | default | spacious` — multiplies every `em` typography value at once.
+
+### The typography roles
+
+Defined in `DEFAULT-TYPOGRAPHY` in [_extensions/academic-poster/typst-template.typ](_extensions/academic-poster/typst-template.typ):
+
+| Role | Default | Where it applies |
+|---|---|---|
+| `title` | 2.4em | Poster title in the header |
+| `subtitle` | 1.0em | Subtitle line under the title |
+| `authors` | 0.78em | Author byline |
+| `institutions` | 0.6em | Affiliations line |
+| `footer` | 0.58em | Footer text |
+| `card-title` | 1.0em | Section card header (h1 → card) |
+| `card-title-large` | 1.18em | Section card with `.large` modifier |
+| `card-title-compact` | 0.86em | Section card with `.compact` modifier |
+| `callout` | 1.0em | Default `.poster-callout` text |
+| `callout-large` | 1.2em | `.poster-callout.large` |
+| `callout-compact` | 0.86em | `.poster-callout.compact` |
+| `body` | 1em | Body paragraph text |
+| `h2` | 0.95em | Plain-mode level-2 heading |
+| `h3` | 0.88em | Plain-mode level-3 heading |
+
+### Per-role overrides
+
+Use `poster-typography:` (a YAML map) for one-off tweaks. Values must include a Typst unit:
 
 ```yaml
-brand: _brand.yml
+format:
+  academic-poster-typst:
+    poster-scale: default
+    poster-typography:
+      title: 2.8em
+      card-title-large: 1.4em
 ```
 
-## Metadata
+Same shape for `poster-spacing:` and `poster-colors:`.
 
-The header automatically uses:
+---
 
-- `title`
-- `subtitle`
-- `author`
-- author-level `affiliation`
-- `institution` or `institutions`
+## Class System
 
-Posterdown-style aliases are also accepted where useful:
+Markdown Divs and headings carry a small set of modifier classes that drive layout and styling. Think of them like reveal.js slide modifiers — adding a class changes the rendering without touching Typst.
 
-- `poster-authors`
-- `departments`
-- `institution-logo`
-- `footer-text`
-- `footer-emails`
-- `footer-color`
+### Layout containers
 
-## Layout Options
+| Class | Effect |
+|---|---|
+| `.poster-column` | Marks a top-level column. Two or more in a row form a horizontal grid using `poster-columns:` widths. |
+| `.poster-feature` | Combined with `.poster-column`, produces a high-contrast filled panel (a "results" column). |
+| `.poster-callout` | Bordered emphasis box for short claims. |
 
-Set these under `format: academic-poster-typst`.
+### Modifiers (apply to cards and callouts)
+
+| Class | Effect |
+|---|---|
+| `.compact` | Tighter padding, smaller title/text |
+| `.large` | Bigger title/text |
+| `.plain` / `.no-card` | Leave an h1 as a normal heading instead of wrapping it in a card |
+| `.secondary` | Use the `secondary` color |
+| `.accent` | Use the `accent` color |
+| `.light` | Light background, dark text |
+| `.dark` | Dark background, light text |
+| `.inverse` | White card on a dark feature panel |
+
+### Examples
+
+```markdown
+::: {.poster-column}
+
+# Background {.compact}
+
+Body text.
+
+# Methods {.compact}
+
+- Bullet one
+- Bullet two
+
+:::
+
+::: {.poster-column .poster-feature}
+
+# Key Findings {.compact .inverse}
+
+::: {.poster-callout .large}
+Headline result in one sentence.
+:::
+
+![](figures/main.png){width=100%}
+
+:::
+```
+
+---
+
+## YAML Reference
+
+### Paper
 
 ```yaml
+poster-size: 48x36in     # presets: a0 a1 a2 a3 (+ -landscape); or WxH<unit>
+# or explicit:
 poster-width: 56in
 poster-height: 31.5in
+
 margin:
-  x: 0.55in
+  x: 0.55in              # Quarto-native key
   y: 0.45in
-poster-header-height: 15%
-poster-footer-height: 6%
-poster-row-gap: 0.35in
-poster-corner-radius: 7pt
 ```
 
-You can also use the legacy margin aliases:
+### Body layout
 
 ```yaml
-poster-margin-x: 0.8in
-poster-margin-y: 0.6in
-```
-
-## Columns
-
-For simple posters, omit `.poster-column` containers and let content flow through equal Typst columns:
-
-```yaml
+poster-columns: [1, 1.3, 1]   # widths in fr (bare numbers => Nfr)
+# or just a count for equal columns:
 poster-columns: 3
-poster-column-gap: 0.45in
+
+poster-header-height: 15%     # % of the poster body grid
+poster-footer-height: 6%
+poster-logo-width: 14%        # % of the header strip
+poster-logo-height: 86%       # % of the header strip
 ```
 
-The standard Quarto `columns` option is also accepted as an alias for `poster-columns`.
-
-For unequal-width columns, wrap top-level content in consecutive `.poster-column` Divs and set `poster-column-widths`:
+### Typography
 
 ```yaml
-poster-column-gap: 0.45in
-poster-column-widths: [1.1fr, 1fr, 0.9fr]
+fontsize: 22pt                # Quarto-native; the anchor for every em ratio
+mainfont: "Libertinus Serif"  # Quarto-native
+
+poster-scale: default         # compact | default | spacious
+poster-typography:            # advanced per-key override
+  title: 2.8em
+  card-title-compact: 0.78em
 ```
 
-```markdown
-::: {.poster-column}
-# Background
-...
-:::
+### Colors
 
-::: {.poster-column}
-# Results
-...
-:::
+Brand colors via `_brand.yml` are automatically wired into `primary`, `secondary`, `accent`, `light`, `background`, and `foreground`. To override:
 
-::: {.poster-column}
-# Conclusion
-...
-:::
+```yaml
+poster-colors:
+  primary: '#b01c32'
+  secondary: '#6f1020'
+  accent: '#f4c7cf'
+  light: '#f8e8eb'
+  # plus the "on-X" foreground used on top of X:
+  on-primary: white
 ```
 
-This uses a small Lua filter to convert the Divs into a Typst `grid()`. Without explicit Divs, Typst's native `columns()` is used, which supports equal-width flow columns.
+### Spacing
 
-Add `.poster-feature` to a column to create a high-contrast feature/results panel:
-
-```markdown
-::: {.poster-column .poster-feature}
-# Key Findings
-...
-:::
+```yaml
+poster-spacing:
+  row-gap: 0.4in
+  column-gap: 0.6in
+  card-gap: 0.32em
+  feature-inset: 0.4in
+  corner-radius: 6pt
 ```
 
-Feature panels can also use color modifiers:
-
-```markdown
-::: {.poster-column .poster-feature .secondary}
-...
-:::
-```
-
-## Sections And Callouts
-
-Level-1 headings become poster cards automatically:
-
-```markdown
-# Background
-
-Poster section text goes here.
-```
-
-Use `.poster-callout` for short emphasized findings:
-
-```markdown
-::: {.poster-callout .large}
-Main result or take-home message.
-:::
-```
-
-Supported heading/card modifiers:
-
-- `.compact` reduces section card spacing.
-- `.large` increases the section title size.
-- `.light`, `.secondary`, `.accent`, `.dark`, and `.inverse` change the card header color treatment.
-- `.plain` or `.no-card` leaves an H1 as a normal heading instead of making a card.
-
-Supported callout modifiers:
-
-- `.large` or `.compact` changes callout text size.
-- `.light`, `.secondary`, `.accent`, `.dark`, and `.inverse` change the accent color.
-
-## Header And Footer
+### Header / footer slots
 
 ```yaml
 logo-left: images/lab-logo.png
-logo-right: images/university-logo.png
-poster-logo-width: 16%
-poster-logo-height: 86%
+logo-right: images/conference-logo.png
 footer-left: "Scan for preprint"
 footer-center: "Conference Name 2026"
-footer-right: "contact@example.edu"
+footer-right: "@handle"
 footer-logo-left: images/sponsor.png
 footer-logo-right: images/qr-code.png
 ```
 
-Header and footer heights are controlled by `poster-header-height` and `poster-footer-height`, usually as percentages of the poster body area.
+Institutions auto-resolve from per-author `affiliation` entries; override with explicit `institutions:` or `institution:` if you want full control.
 
-## Typography
+---
 
-Prefer Quarto's standard Typst options:
+## Recipes
 
-```yaml
-mainfont: "Libertinus Serif"
-fontsize: 22pt
+### Render the included example
+
+```bash
+quarto render example.qmd
 ```
 
-Poster-specific typography options:
+The example uses R + ggplot2 to generate two PNGs in `figures/`, then assembles them with a feature column.
 
-```yaml
-poster-line-spacing: 1.15em
-poster-title-size: 1.85em
-poster-subtitle-size: 0.86em
-poster-author-size: 0.72em
-poster-institution-size: 0.62em
-poster-footer-size: 0.58em
-poster-h1-size: 0.78em
-poster-h2-size: 0.72em
-poster-h3-size: 0.68em
-poster-card-title-size: 0.78em
-poster-card-gap: 0.26em
-poster-callout-size: 0.78em
+### Start a new poster from the template
+
+```bash
+quarto use template <path-to-this-repo>
 ```
 
-## Theme Colors
-
-Color values are Typst expressions. These can be literal colors or brand lookups:
+Or copy `_extensions/academic-poster` into an existing project and add to your `.qmd`:
 
 ```yaml
-poster-primary: brand-color.at("primary", default: rgb("#b01c32"))
-poster-secondary: rgb("#6f1020")
-poster-subsection-bg: rgb("#f8e8eb")
+format:
+  academic-poster-typst: default
 ```
 
-Additional card and feature-panel color controls:
+### Two-column poster
 
 ```yaml
-poster-card-bg: white
-poster-card-stroke: rgb("#ead8dc")
-poster-feature-bg: brand-color.at("primary", default: rgb("#b01c32"))
-poster-callout-bg: white
-poster-callout-accent: rgb("#b01c32")
+poster-columns: [1, 1]
 ```
+
+Or omit `.poster-column` Divs entirely and use Quarto's flowing columns:
+
+```yaml
+poster-columns: 2
+```
+
+### Swap to a different brand color
+
+In `_brand.yml`:
+
+```yaml
+color:
+  palette:
+    navy: "#1a3a6e"
+  primary: navy
+```
+
+Or, without `_brand.yml`:
+
+```yaml
+poster-colors:
+  primary: '#1a3a6e'
+  secondary: '#0f1f3a'
+```
+
+### A more compact poster (tighter type, same dimensions)
+
+```yaml
+poster-scale: compact
+```
+
+### One specific card title is too big
+
+```yaml
+poster-typography:
+  card-title-large: 1.05em
+```
+
+---
+
+## Known Limitations / Work in Progress
+
+- **No automatic column balancing across `.poster-column` Divs.** Each column gets the content you place in it; if one runs short, the bottom of that column is blank. (Use `poster-columns: 3` without explicit Divs if you want Typst's flowing columns instead.)
+- **No bibliography styling yet.** Quarto's citeproc still works but the bibliography card has no custom rendering. Wrap it in a `.compact` section if you use it.
+- **Brand colors only read 6 slots** (`primary`, `secondary`, `tertiary` → accent, `light`, `background`, `foreground`). Other brand keys are ignored.
+- **`a0`/`a1`/`a2`/`a3` are the only paper presets.** US-Letter-derived sizes need explicit `WxH<unit>`.
+- **Feature columns don't yet expose individual padding.** `poster-spacing.feature-inset` is global.
+- **Heading levels 4+ have no custom rendering.**
+
+---
 
 ## Files
 
-- `_extensions/academic-poster/_extension.yml` defines the Quarto format.
-- `_extensions/academic-poster/typst-template.typ` defines the Typst layout functions.
-- `_extensions/academic-poster/typst-show.typ` maps Quarto/Pandoc metadata into the Typst template.
-- `_extensions/academic-poster/poster-columns.lua` enables explicit unequal-width poster columns.
-- `_extensions/academic-poster/template.qmd` is the template copied by `quarto use template`.
-- `example.qmd` is a root-level render test and starting example.
+| File | Role |
+|---|---|
+| [_extensions/academic-poster/_extension.yml](_extensions/academic-poster/_extension.yml) | Quarto format manifest |
+| [_extensions/academic-poster/typst-template.typ](_extensions/academic-poster/typst-template.typ) | Defaults + helpers + `poster()` show rule |
+| [_extensions/academic-poster/typst-show.typ](_extensions/academic-poster/typst-show.typ) | Pandoc → Typst metadata splice |
+| [_extensions/academic-poster/poster-columns.lua](_extensions/academic-poster/poster-columns.lua) | Pandoc AST → structural Typst calls |
+| [_extensions/academic-poster/template.qmd](_extensions/academic-poster/template.qmd) | Starter copied by `quarto use template` |
+| [example.qmd](example.qmd) | Render test and starting example |
+| [_brand.yml](_brand.yml) | Brand color palette |

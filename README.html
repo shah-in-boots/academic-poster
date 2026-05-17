@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>readme</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="README_files/libs/clipboard/clipboard.min.js"></script>
+<script src="README_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="README_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="README_files/libs/quarto-html/popper.min.js"></script>
+<script src="README_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="README_files/libs/quarto-html/anchor.min.js"></script>
+<link href="README_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="README_files/libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="README_files/libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="README_files/libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="README_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="README_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="README_files/libs/bootstrap/bootstrap-d1f282d8d40830b91c99a671af86ba87.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="README_files/libs/bootstrap/bootstrap-dark-d1f282d8d40830b91c99a671af86ba87.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="README_files/libs/bootstrap/bootstrap-d1f282d8d40830b91c99a671af86ba87.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="academic-poster" class="level1">
+<h1>academic-poster</h1>
+<p>A Quarto Typst custom format for academic research posters. The whole thing is plain Markdown plus YAML, with a small Typst template and a Lua filter handling the layout.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">academic-poster-typst</span><span class="kw">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">poster-size</span><span class="kw">:</span><span class="at"> 48x36in</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">fontsize</span><span class="kw">:</span><span class="at"> 22pt</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">poster-scale</span><span class="kw">:</span><span class="at"> default</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> render example.qmd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+<section id="mental-model" class="level2">
+<h2 class="anchored" data-anchor-id="mental-model">Mental Model</h2>
+<pre><code>your-poster.qmd ──► poster-columns.lua ──► typst-show.typ ──► poster() in typst-template.typ
+   (YAML + MD)        (Pandoc filter)        (template partial)       (Typst layout)</code></pre>
+<ol type="1">
+<li><strong><code>your-poster.qmd</code></strong> — Quarto/Markdown source. YAML keys drive layout; level-1 headings become cards; <code>.poster-column</code> / <code>.poster-callout</code> / <code>.poster-feature</code> divs structure the page.</li>
+<li><strong><code>poster-columns.lua</code></strong> — Pandoc filter that:
+<ul>
+<li>Resolves <code>poster-size</code> aliases (<code>a0</code>, <code>48x36in</code>, …) into width/height.</li>
+<li>Wraps level-1 headings into <code>#poster-card(role: ..., variant: ...)[...]</code> calls.</li>
+<li>Converts <code>.poster-column</code> Divs into a <code>#poster-grid(...)</code> call.</li>
+<li>Builds <code>typography:</code>, <code>spacing:</code>, <code>colors:</code> dict literals from nested YAML maps and stashes them as <code>resolved-*</code> meta values.</li>
+<li>Resolves author affiliations into a single institutions string.</li>
+</ul></li>
+<li><strong><code>typst-show.typ</code></strong> — Pandoc template partial that emits a single <code>#show: poster.with(...)</code> call, splicing in the resolved meta.</li>
+<li><strong><code>typst-template.typ</code></strong> — All defaults, helpers, and the top-level <code>poster()</code> show rule live here.</li>
+</ol>
+<p>When you want to change a default, you change exactly one place: <a href="_extensions/academic-poster/typst-template.typ">_extensions/academic-poster/typst-template.typ</a> (the three <code>DEFAULT-*</code> dicts at the top).</p>
+<hr>
+</section>
+<section id="sizing-model" class="level2">
+<h2 class="anchored" data-anchor-id="sizing-model">Sizing Model</h2>
+<p>Everything typographic is expressed as a multiple of the document <code>fontsize</code>. Everything structural is expressed in absolute lengths or container percentages. There are three unit families and they map to roles cleanly:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Use</th>
+<th>Unit</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Type sizes (title, body, card titles, callouts)</td>
+<td><code>em</code></td>
+<td>Scales with <code>fontsize</code>; one knob changes everything</td>
+</tr>
+<tr class="even">
+<td>Per-element padding and gaps around text</td>
+<td><code>em</code></td>
+<td>Stays proportional to type size</td>
+</tr>
+<tr class="odd">
+<td>Poster paper dimensions, margins, column gutters</td>
+<td><code>in</code> / <code>cm</code> / <code>mm</code> / <code>pt</code></td>
+<td>Typst <code>%</code> does not work for <code>page</code> size</td>
+</tr>
+<tr class="even">
+<td>Header height, footer height, logo width inside header</td>
+<td><code>%</code></td>
+<td>Container-relative; lets you target a fraction of the body grid</td>
+</tr>
+<tr class="odd">
+<td>Column widths</td>
+<td><code>fr</code> (or bare number, auto-suffixed)</td>
+<td>Typst grid fractional units</td>
+</tr>
+</tbody>
+</table>
+<p>A single knob — <code>poster-scale: compact | default | spacious</code> — multiplies every <code>em</code> typography value at once.</p>
+<section id="the-typography-roles" class="level3">
+<h3 class="anchored" data-anchor-id="the-typography-roles">The typography roles</h3>
+<p>Defined in <code>DEFAULT-TYPOGRAPHY</code> in <a href="_extensions/academic-poster/typst-template.typ">_extensions/academic-poster/typst-template.typ</a>:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Role</th>
+<th>Default</th>
+<th>Where it applies</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>title</code></td>
+<td>2.4em</td>
+<td>Poster title in the header</td>
+</tr>
+<tr class="even">
+<td><code>subtitle</code></td>
+<td>1.0em</td>
+<td>Subtitle line under the title</td>
+</tr>
+<tr class="odd">
+<td><code>authors</code></td>
+<td>0.78em</td>
+<td>Author byline</td>
+</tr>
+<tr class="even">
+<td><code>institutions</code></td>
+<td>0.6em</td>
+<td>Affiliations line</td>
+</tr>
+<tr class="odd">
+<td><code>footer</code></td>
+<td>0.58em</td>
+<td>Footer text</td>
+</tr>
+<tr class="even">
+<td><code>card-title</code></td>
+<td>1.0em</td>
+<td>Section card header (h1 → card)</td>
+</tr>
+<tr class="odd">
+<td><code>card-title-large</code></td>
+<td>1.18em</td>
+<td>Section card with <code>.large</code> modifier</td>
+</tr>
+<tr class="even">
+<td><code>card-title-compact</code></td>
+<td>0.86em</td>
+<td>Section card with <code>.compact</code> modifier</td>
+</tr>
+<tr class="odd">
+<td><code>callout</code></td>
+<td>1.0em</td>
+<td>Default <code>.poster-callout</code> text</td>
+</tr>
+<tr class="even">
+<td><code>callout-large</code></td>
+<td>1.2em</td>
+<td><code>.poster-callout.large</code></td>
+</tr>
+<tr class="odd">
+<td><code>callout-compact</code></td>
+<td>0.86em</td>
+<td><code>.poster-callout.compact</code></td>
+</tr>
+<tr class="even">
+<td><code>body</code></td>
+<td>1em</td>
+<td>Body paragraph text</td>
+</tr>
+<tr class="odd">
+<td><code>h2</code></td>
+<td>0.95em</td>
+<td>Plain-mode level-2 heading</td>
+</tr>
+<tr class="even">
+<td><code>h3</code></td>
+<td>0.88em</td>
+<td>Plain-mode level-3 heading</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="per-role-overrides" class="level3">
+<h3 class="anchored" data-anchor-id="per-role-overrides">Per-role overrides</h3>
+<p>Use <code>poster-typography:</code> (a YAML map) for one-off tweaks. Values must include a Typst unit:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">academic-poster-typst</span><span class="kw">:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">poster-scale</span><span class="kw">:</span><span class="at"> default</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">poster-typography</span><span class="kw">:</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">title</span><span class="kw">:</span><span class="at"> 2.8em</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">card-title-large</span><span class="kw">:</span><span class="at"> 1.4em</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Same shape for <code>poster-spacing:</code> and <code>poster-colors:</code>.</p>
+<hr>
+</section>
+</section>
+<section id="class-system" class="level2">
+<h2 class="anchored" data-anchor-id="class-system">Class System</h2>
+<p>Markdown Divs and headings carry a small set of modifier classes that drive layout and styling. Think of them like reveal.js slide modifiers — adding a class changes the rendering without touching Typst.</p>
+<section id="layout-containers" class="level3">
+<h3 class="anchored" data-anchor-id="layout-containers">Layout containers</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Class</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>.poster-column</code></td>
+<td>Marks a top-level column. Two or more in a row form a horizontal grid using <code>poster-columns:</code> widths.</td>
+</tr>
+<tr class="even">
+<td><code>.poster-feature</code></td>
+<td>Combined with <code>.poster-column</code>, produces a high-contrast filled panel (a “results” column).</td>
+</tr>
+<tr class="odd">
+<td><code>.poster-callout</code></td>
+<td>Bordered emphasis box for short claims.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="modifiers-apply-to-cards-and-callouts" class="level3">
+<h3 class="anchored" data-anchor-id="modifiers-apply-to-cards-and-callouts">Modifiers (apply to cards and callouts)</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Class</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>.compact</code></td>
+<td>Tighter padding, smaller title/text</td>
+</tr>
+<tr class="even">
+<td><code>.large</code></td>
+<td>Bigger title/text</td>
+</tr>
+<tr class="odd">
+<td><code>.plain</code> / <code>.no-card</code></td>
+<td>Leave an h1 as a normal heading instead of wrapping it in a card</td>
+</tr>
+<tr class="even">
+<td><code>.secondary</code></td>
+<td>Use the <code>secondary</code> color</td>
+</tr>
+<tr class="odd">
+<td><code>.accent</code></td>
+<td>Use the <code>accent</code> color</td>
+</tr>
+<tr class="even">
+<td><code>.light</code></td>
+<td>Light background, dark text</td>
+</tr>
+<tr class="odd">
+<td><code>.dark</code></td>
+<td>Dark background, light text</td>
+</tr>
+<tr class="even">
+<td><code>.inverse</code></td>
+<td>White card on a dark feature panel</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples" class="level3">
+<h3 class="anchored" data-anchor-id="examples">Examples</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>::: {.poster-column}</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu"># Background {.compact}</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>Body text.</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu"># Methods {.compact}</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Bullet one</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Bullet two</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>::: {.poster-column .poster-feature}</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="fu"># Key Findings {.compact .inverse}</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>::: {.poster-callout .large}</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>Headline result in one sentence.</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="al">![](figures/main.png)</span>{width=100%}</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="yaml-reference" class="level2">
+<h2 class="anchored" data-anchor-id="yaml-reference">YAML Reference</h2>
+<section id="paper" class="level3">
+<h3 class="anchored" data-anchor-id="paper">Paper</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-size</span><span class="kw">:</span><span class="at"> 48x36in</span><span class="co">     # presets: a0 a1 a2 a3 (+ -landscape); or WxH&lt;unit&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or explicit:</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-width</span><span class="kw">:</span><span class="at"> 56in</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-height</span><span class="kw">:</span><span class="at"> 31.5in</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">margin</span><span class="kw">:</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">x</span><span class="kw">:</span><span class="at"> 0.55in</span><span class="co">              # Quarto-native key</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">y</span><span class="kw">:</span><span class="at"> 0.45in</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="body-layout" class="level3">
+<h3 class="anchored" data-anchor-id="body-layout">Body layout</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-columns</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="dv">1</span><span class="kw">,</span><span class="at"> </span><span class="fl">1.3</span><span class="kw">,</span><span class="at"> </span><span class="dv">1</span><span class="kw">]</span><span class="co">   # widths in fr (bare numbers =&gt; Nfr)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or just a count for equal columns:</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-columns</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-header-height</span><span class="kw">:</span><span class="at"> 15%</span><span class="co">     # % of the poster body grid</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-footer-height</span><span class="kw">:</span><span class="at"> 6%</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-logo-width</span><span class="kw">:</span><span class="at"> 14%</span><span class="co">        # % of the header strip</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-logo-height</span><span class="kw">:</span><span class="at"> 86%</span><span class="co">       # % of the header strip</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="typography" class="level3">
+<h3 class="anchored" data-anchor-id="typography">Typography</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fontsize</span><span class="kw">:</span><span class="at"> 22pt</span><span class="co">                # Quarto-native; the anchor for every em ratio</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mainfont</span><span class="kw">:</span><span class="at"> </span><span class="st">"Libertinus Serif"</span><span class="co">  # Quarto-native</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-scale</span><span class="kw">:</span><span class="at"> default</span><span class="co">         # compact | default | spacious</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-typography</span><span class="kw">:</span><span class="co">            # advanced per-key override</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">title</span><span class="kw">:</span><span class="at"> 2.8em</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">card-title-compact</span><span class="kw">:</span><span class="at"> 0.78em</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="colors" class="level3">
+<h3 class="anchored" data-anchor-id="colors">Colors</h3>
+<p>Brand colors via <code>_brand.yml</code> are automatically wired into <code>primary</code>, <code>secondary</code>, <code>accent</code>, <code>light</code>, <code>background</code>, and <code>foreground</code>. To override:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-colors</span><span class="kw">:</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">primary</span><span class="kw">:</span><span class="at"> </span><span class="st">'#b01c32'</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">secondary</span><span class="kw">:</span><span class="at"> </span><span class="st">'#6f1020'</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">accent</span><span class="kw">:</span><span class="at"> </span><span class="st">'#f4c7cf'</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">light</span><span class="kw">:</span><span class="at"> </span><span class="st">'#f8e8eb'</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">  # plus the "on-X" foreground used on top of X:</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">on-primary</span><span class="kw">:</span><span class="at"> white</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="spacing" class="level3">
+<h3 class="anchored" data-anchor-id="spacing">Spacing</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-spacing</span><span class="kw">:</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">row-gap</span><span class="kw">:</span><span class="at"> 0.4in</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">column-gap</span><span class="kw">:</span><span class="at"> 0.6in</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">card-gap</span><span class="kw">:</span><span class="at"> 0.32em</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">feature-inset</span><span class="kw">:</span><span class="at"> 0.4in</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">corner-radius</span><span class="kw">:</span><span class="at"> 6pt</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="header-footer-slots" class="level3">
+<h3 class="anchored" data-anchor-id="header-footer-slots">Header / footer slots</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logo-left</span><span class="kw">:</span><span class="at"> images/lab-logo.png</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">logo-right</span><span class="kw">:</span><span class="at"> images/conference-logo.png</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">footer-left</span><span class="kw">:</span><span class="at"> </span><span class="st">"Scan for preprint"</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">footer-center</span><span class="kw">:</span><span class="at"> </span><span class="st">"Conference Name 2026"</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">footer-right</span><span class="kw">:</span><span class="at"> </span><span class="st">"@handle"</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">footer-logo-left</span><span class="kw">:</span><span class="at"> images/sponsor.png</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">footer-logo-right</span><span class="kw">:</span><span class="at"> images/qr-code.png</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Institutions auto-resolve from per-author <code>affiliation</code> entries; override with explicit <code>institutions:</code> or <code>institution:</code> if you want full control.</p>
+<hr>
+</section>
+</section>
+<section id="recipes" class="level2">
+<h2 class="anchored" data-anchor-id="recipes">Recipes</h2>
+<section id="render-the-included-example" class="level3">
+<h3 class="anchored" data-anchor-id="render-the-included-example">Render the included example</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> render example.qmd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The example uses R + ggplot2 to generate two PNGs in <code>figures/</code>, then assembles them with a feature column.</p>
+</section>
+<section id="start-a-new-poster-from-the-template" class="level3">
+<h3 class="anchored" data-anchor-id="start-a-new-poster-from-the-template">Start a new poster from the template</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> use template <span class="op">&lt;</span>path-to-this-repo<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Or copy <code>_extensions/academic-poster</code> into an existing project and add to your <code>.qmd</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">academic-poster-typst</span><span class="kw">:</span><span class="at"> default</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="two-column-poster" class="level3">
+<h3 class="anchored" data-anchor-id="two-column-poster">Two-column poster</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-columns</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="dv">1</span><span class="kw">,</span><span class="at"> </span><span class="dv">1</span><span class="kw">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Or omit <code>.poster-column</code> Divs entirely and use Quarto’s flowing columns:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-columns</span><span class="kw">:</span><span class="at"> </span><span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="swap-to-a-different-brand-color" class="level3">
+<h3 class="anchored" data-anchor-id="swap-to-a-different-brand-color">Swap to a different brand color</h3>
+<p>In <code>_brand.yml</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">color</span><span class="kw">:</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">palette</span><span class="kw">:</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">navy</span><span class="kw">:</span><span class="at"> </span><span class="st">"#1a3a6e"</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">primary</span><span class="kw">:</span><span class="at"> navy</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Or, without <code>_brand.yml</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-colors</span><span class="kw">:</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">primary</span><span class="kw">:</span><span class="at"> </span><span class="st">'#1a3a6e'</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">secondary</span><span class="kw">:</span><span class="at"> </span><span class="st">'#0f1f3a'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="a-more-compact-poster-tighter-type-same-dimensions" class="level3">
+<h3 class="anchored" data-anchor-id="a-more-compact-poster-tighter-type-same-dimensions">A more compact poster (tighter type, same dimensions)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-scale</span><span class="kw">:</span><span class="at"> compact</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="one-specific-card-title-is-too-big" class="level3">
+<h3 class="anchored" data-anchor-id="one-specific-card-title-is-too-big">One specific card title is too big</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">poster-typography</span><span class="kw">:</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">card-title-large</span><span class="kw">:</span><span class="at"> 1.05em</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="known-limitations-work-in-progress" class="level2">
+<h2 class="anchored" data-anchor-id="known-limitations-work-in-progress">Known Limitations / Work in Progress</h2>
+<ul>
+<li><strong>No automatic column balancing across <code>.poster-column</code> Divs.</strong> Each column gets the content you place in it; if one runs short, the bottom of that column is blank. (Use <code>poster-columns: 3</code> without explicit Divs if you want Typst’s flowing columns instead.)</li>
+<li><strong>No bibliography styling yet.</strong> Quarto’s citeproc still works but the bibliography card has no custom rendering. Wrap it in a <code>.compact</code> section if you use it.</li>
+<li><strong>Brand colors only read 6 slots</strong> (<code>primary</code>, <code>secondary</code>, <code>tertiary</code> → accent, <code>light</code>, <code>background</code>, <code>foreground</code>). Other brand keys are ignored.</li>
+<li><strong><code>a0</code>/<code>a1</code>/<code>a2</code>/<code>a3</code> are the only paper presets.</strong> US-Letter-derived sizes need explicit <code>WxH&lt;unit&gt;</code>.</li>
+<li><strong>Feature columns don’t yet expose individual padding.</strong> <code>poster-spacing.feature-inset</code> is global.</li>
+<li><strong>Heading levels 4+ have no custom rendering.</strong></li>
+</ul>
+<hr>
+</section>
+<section id="files" class="level2">
+<h2 class="anchored" data-anchor-id="files">Files</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="_extensions/academic-poster/_extension.yml">_extensions/academic-poster/_extension.yml</a></td>
+<td>Quarto format manifest</td>
+</tr>
+<tr class="even">
+<td><a href="_extensions/academic-poster/typst-template.typ">_extensions/academic-poster/typst-template.typ</a></td>
+<td>Defaults + helpers + <code>poster()</code> show rule</td>
+</tr>
+<tr class="odd">
+<td><a href="_extensions/academic-poster/typst-show.typ">_extensions/academic-poster/typst-show.typ</a></td>
+<td>Pandoc → Typst metadata splice</td>
+</tr>
+<tr class="even">
+<td><a href="_extensions/academic-poster/poster-columns.lua">_extensions/academic-poster/poster-columns.lua</a></td>
+<td>Pandoc AST → structural Typst calls</td>
+</tr>
+<tr class="odd">
+<td><a href="_extensions/academic-poster/template.qmd">_extensions/academic-poster/template.qmd</a></td>
+<td>Starter copied by <code>quarto use template</code></td>
+</tr>
+<tr class="even">
+<td><a href="example.qmd">example.qmd</a></td>
+<td>Render test and starting example</td>
+</tr>
+<tr class="odd">
+<td><a href="_brand.yml">_brand.yml</a></td>
+<td>Brand color palette</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

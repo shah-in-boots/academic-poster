@@ -1,45 +1,47 @@
+-- academic-poster: structural Pandoc -> Typst transform.
+--
+-- Responsibilities (kept deliberately narrow):
+--   1. Resolve `poster-size` / paper presets into width + height.
+--   2. Build typography/spacing/colors dict literals from nested YAML maps
+--      so typst-show.typ can splice them in verbatim.
+--   3. Convert `.poster-column` Divs into a `#poster-grid(...)` call.
+--   4. Wrap level-1 headings in `#poster-card(role: ..., variant: ...)[...]`.
+--   5. Convert `.poster-callout` Divs into `#poster-callout(...)[...]`.
+--
+-- All sizing, color, and inset *defaults* live in typst-template.typ. This
+-- filter does not compute em values — it only decides which role a block
+-- plays (card / card-compact / callout-large / ...) and which color variant
+-- it uses (primary / secondary / light / ...).
+
+-- ---------------------------------------------------------------------------
+-- Meta helpers
+-- ---------------------------------------------------------------------------
+
 local function has_class(block, class)
-  if block.t ~= "Div" and block.t ~= "Header" then
-    return false
-  end
-
+  if block.t ~= "Div" and block.t ~= "Header" then return false end
   for _, value in ipairs(block.classes) do
-    if value == class then
-      return true
-    end
+    if value == class then return true end
   end
-
   return false
 end
 
 local function meta_string(meta, key)
   local value = meta[key]
-  if value == nil then
-    return nil
-  end
-
-  if type(value) == "string" then
-    return value
-  end
-
+  if value == nil then return nil end
+  if type(value) == "string" then return value end
   return pandoc.utils.stringify(value)
-end
-
-local function meta_expr(meta, key, default)
-  local value = meta_string(meta, key)
-  if value == nil or value == "" then
-    return default
-  end
-
-  return value
 end
 
 local function meta_list(meta, key)
   local value = meta[key]
-  if value == nil then
-    return nil
+  if value == nil then return nil end
+  if type(value) == "table" and value.t == "MetaList" then
+    local result = {}
+    for _, item in ipairs(value) do
+      table.insert(result, pandoc.utils.stringify(item))
+    end
+    return result
   end
-
   if type(value) == "table" and #value > 0 then
     local result = {}
     for _, item in ipairs(value) do
@@ -47,39 +49,163 @@ local function meta_list(meta, key)
     end
     return result
   end
-
   return { pandoc.utils.stringify(value) }
 end
 
+-- ---------------------------------------------------------------------------
+-- Paper size resolution
+-- ---------------------------------------------------------------------------
+
+local PAPER_PRESETS = {
+  ["a0"] = {width = "841mm", height = "1189mm"},
+  ["a0-landscape"] = {width = "1189mm", height = "841mm"},
+  ["a1"] = {width = "594mm", height = "841mm"},
+  ["a1-landscape"] = {width = "841mm", height = "594mm"},
+  ["a2"] = {width = "420mm", height = "594mm"},
+  ["a3"] = {width = "297mm", height = "420mm"},
+}
+
+local function resolve_paper_size(meta)
+  local size = meta_string(meta, "poster-size")
+  if size then
+    local lower = size:lower():gsub("%s+", "")
+    if PAPER_PRESETS[lower] then
+      local p = PAPER_PRESETS[lower]
+      return p.width, p.height
+    end
+    -- "WxH<unit>" form, e.g. "48x36in", "56x31.5in", "120x90cm"
+    local w, h, unit = lower:match("^([%d%.]+)x([%d%.]+)(%a+)$")
+    if w and h and unit then
+      return w .. unit, h .. unit
+    end
+  end
+
+  local width = meta_string(meta, "poster-width") or "48in"
+  local height = meta_string(meta, "poster-height") or "36in"
+  return width, height
+end
+
+-- ---------------------------------------------------------------------------
+-- Column widths
+-- ---------------------------------------------------------------------------
+
 local function normalize_track(value)
-  if value == nil or value == "" then
-    return "1fr"
-  end
-
-  if value:match("[a-zA-Z%%]") then
-    return value
-  end
-
+  if value == nil or value == "" then return "1fr" end
+  -- Already has a unit (em, in, cm, pt, mm, %, fr)
+  if value:match("[a-zA-Z%%]") then return value end
   return value .. "fr"
 end
 
-local function columns_expr(meta, count)
-  local widths = meta_list(meta, "poster-column-widths") or meta_list(meta, "column-widths")
-
-  if widths == nil or #widths == 0 then
+local function column_widths_literal(meta, count)
+  local widths = meta_list(meta, "poster-columns") or meta_list(meta, "poster-column-widths")
+  if widths == nil or #widths == 0 or (#widths == 1 and tonumber(widths[1])) then
+    -- single integer (column count) or absent -> equal columns
+    local n = count
+    if widths and #widths == 1 then n = tonumber(widths[1]) end
     local tracks = {}
-    for _ = 1, count do
-      table.insert(tracks, "1fr")
-    end
+    for _ = 1, n do table.insert(tracks, "1fr") end
     return "(" .. table.concat(tracks, ", ") .. ")"
   end
 
   local tracks = {}
-  for _, width in ipairs(widths) do
-    table.insert(tracks, normalize_track(width))
-  end
+  for _, w in ipairs(widths) do table.insert(tracks, normalize_track(w)) end
   return "(" .. table.concat(tracks, ", ") .. ")"
 end
+
+local function column_count(meta)
+  local widths = meta_list(meta, "poster-columns") or meta_list(meta, "poster-column-widths")
+  if widths and #widths == 1 and tonumber(widths[1]) then
+    return tonumber(widths[1])
+  end
+  if widths and #widths > 1 then return #widths end
+  return 3
+end
+
+-- ---------------------------------------------------------------------------
+-- Nested YAML map -> Typst dict literal
+-- ---------------------------------------------------------------------------
+
+-- A value coming from YAML may look like a literal Typst expression (e.g.
+-- "1.1em", "rgb(\"#b01c32\")"), a color hex ("#b01c32"), or a bare number.
+-- This function emits the Typst-side representation.
+local function typst_value(raw)
+  if raw == nil then return "none" end
+  local s = pandoc.utils.stringify(raw)
+  if s == "" then return "none" end
+
+  -- Already a Typst expression: rgb(...), em, pt, in, cm, mm, %, fr, none, true, false, white, black
+  if s:match("^rgb%(") or s:match("^cmyk%(") or s:match("^luma%(") then return s end
+  if s:match("[%d%.]+%s*[a-zA-Z%%]+$") then return s end
+  if s == "none" or s == "true" or s == "false" or s == "auto" then return s end
+  if s == "white" or s == "black" then return s end
+
+  -- Hex color: "#rgb" / "#rrggbb"
+  if s:match("^#[%x][%x][%x]$") or s:match("^#[%x][%x][%x][%x][%x][%x]$") then
+    return 'rgb("' .. s .. '")'
+  end
+
+  -- A bare number (no unit) — leave as-is for things like font factors
+  if tonumber(s) then return s end
+
+  -- Fall back: assume it's already a valid Typst expression
+  return s
+end
+
+-- Quote dict keys; em-keys with hyphens need quoting.
+local function dict_key(k)
+  return '"' .. k .. '"'
+end
+
+local function map_to_dict_literal(meta_value)
+  if meta_value == nil then return "(:)" end
+  if type(meta_value) ~= "table" then return "(:)" end
+
+  local entries = {}
+  -- MetaMap in Pandoc is iterable as a table; preserve insertion order
+  local keys = {}
+  for k, _ in pairs(meta_value) do
+    if k ~= "t" and k ~= "c" then table.insert(keys, k) end
+  end
+  table.sort(keys)
+
+  for _, k in ipairs(keys) do
+    local v = meta_value[k]
+    table.insert(entries, dict_key(k) .. ": " .. typst_value(v))
+  end
+
+  if #entries == 0 then return "(:)" end
+  return "(" .. table.concat(entries, ", ") .. ")"
+end
+
+-- ---------------------------------------------------------------------------
+-- Role + variant detection
+-- ---------------------------------------------------------------------------
+
+local function card_role(block)
+  if has_class(block, "large") then return "card-large" end
+  if has_class(block, "compact") then return "card-compact" end
+  return "card"
+end
+
+local function callout_role(block)
+  if has_class(block, "large") then return "callout-large" end
+  if has_class(block, "compact") then return "callout-compact" end
+  return "callout"
+end
+
+local VARIANT_CLASSES = {"secondary", "accent", "light", "dark", "inverse"}
+
+local function variant_of(block)
+  for _, name in ipairs(VARIANT_CLASSES) do
+    if has_class(block, name) then return name end
+  end
+  if has_class(block, "muted") then return "light" end
+  return "primary"
+end
+
+-- ---------------------------------------------------------------------------
+-- Inline / block helpers
+-- ---------------------------------------------------------------------------
 
 local function inlines_to_typst(inlines)
   local doc = pandoc.Pandoc({ pandoc.Plain(inlines) })
@@ -87,9 +213,7 @@ local function inlines_to_typst(inlines)
 end
 
 local function append_all(target, source)
-  for _, block in ipairs(source) do
-    target:insert(block)
-  end
+  for _, block in ipairs(source) do target:insert(block) end
 end
 
 local function raw_wrap(start, content, finish)
@@ -100,130 +224,11 @@ local function raw_wrap(start, content, finish)
   return blocks
 end
 
-local function primary(meta)
-  return meta_expr(meta, "poster-primary", "rgb(\"#b01c32\")")
-end
+-- ---------------------------------------------------------------------------
+-- Block transformation
+-- ---------------------------------------------------------------------------
 
-local function secondary(meta)
-  return meta_expr(meta, "poster-secondary", "rgb(\"#6f1020\")")
-end
-
-local function section_bg(meta)
-  return meta_expr(meta, "poster-section-bg", primary(meta))
-end
-
-local function section_fg(meta)
-  return meta_expr(meta, "poster-section-fg", "white")
-end
-
-local function subsection_bg(meta)
-  return meta_expr(meta, "poster-subsection-bg", "brand-color.at(\"light\", default: rgb(\"#f8e8eb\"))")
-end
-
-local function subsection_fg(meta)
-  return meta_expr(meta, "poster-subsection-fg", secondary(meta))
-end
-
-local function accent(meta)
-  return meta_expr(meta, "poster-accent", "brand-color.at(\"tertiary\", default: rgb(\"#f4c7cf\"))")
-end
-
-local function card_fill(meta)
-  return meta_expr(meta, "poster-card-bg", "white")
-end
-
-local function card_stroke(meta)
-  return meta_expr(meta, "poster-card-stroke", "rgb(\"#ead8dc\")")
-end
-
-local function card_radius(meta)
-  return meta_expr(meta, "poster-card-radius", meta_expr(meta, "poster-corner-radius", "5pt"))
-end
-
-local function variant(block)
-  if has_class(block, "secondary") then
-    return "secondary"
-  elseif has_class(block, "accent") then
-    return "accent"
-  elseif has_class(block, "light") or has_class(block, "muted") then
-    return "light"
-  elseif has_class(block, "dark") then
-    return "dark"
-  elseif has_class(block, "inverse") then
-    return "inverse"
-  end
-
-  return "primary"
-end
-
-local function variant_fill(meta, name)
-  if name == "secondary" then
-    return secondary(meta)
-  elseif name == "accent" then
-    return accent(meta)
-  elseif name == "light" then
-    return subsection_bg(meta)
-  elseif name == "dark" then
-    return meta_expr(meta, "poster-dark", "rgb(\"#17212b\")")
-  elseif name == "inverse" then
-    return "white"
-  end
-
-  return section_bg(meta)
-end
-
-local function variant_text(meta, name)
-  if name == "accent" or name == "light" or name == "inverse" then
-    return subsection_fg(meta)
-  end
-
-  return section_fg(meta)
-end
-
-local function card_title_size(meta, block)
-  if has_class(block, "large") then
-    return meta_expr(meta, "poster-h1-large-size", "1.1em")
-  elseif has_class(block, "compact") then
-    return meta_expr(meta, "poster-h1-compact-size", "0.82em")
-  end
-
-  return meta_expr(meta, "poster-card-title-size", meta_expr(meta, "poster-h1-size", "0.92em"))
-end
-
-local function card_body_inset(meta, block)
-  if has_class(block, "compact") then
-    return meta_expr(meta, "poster-card-compact-body-inset", "(x: 0.38em, y: 0.22em)")
-  end
-
-  return meta_expr(meta, "poster-card-body-inset", "(x: 0.48em, y: 0.34em)")
-end
-
-local function card_gap(meta, block)
-  if has_class(block, "compact") then
-    return meta_expr(meta, "poster-card-compact-gap", "0.22em")
-  end
-
-  return meta_expr(meta, "poster-card-gap", "0.32em")
-end
-
-local function callout_text_size(meta, block)
-  if has_class(block, "large") then
-    return meta_expr(meta, "poster-callout-large-size", "1.02em")
-  elseif has_class(block, "compact") then
-    return meta_expr(meta, "poster-callout-compact-size", "0.78em")
-  end
-
-  return meta_expr(meta, "poster-callout-size", "0.88em")
-end
-
-local function feature_fill(meta, block)
-  local name = variant(block)
-  if name == "primary" then
-    return meta_expr(meta, "poster-feature-bg", section_bg(meta))
-  end
-
-  return variant_fill(meta, name)
-end
+local wrap_columns -- forward declaration
 
 local function transform_blocks(blocks, meta)
   local out = pandoc.List()
@@ -234,93 +239,79 @@ local function transform_blocks(blocks, meta)
 
     if block.t == "Div" and has_class(block, "poster-column") then
       local column_divs = {}
-
       while index <= #blocks and blocks[index].t == "Div" and has_class(blocks[index], "poster-column") do
         local div = blocks[index]
         div.content = transform_blocks(div.content, meta)
         table.insert(column_divs, div)
         index = index + 1
       end
-
       append_all(out, wrap_columns(column_divs, meta))
+
     elseif block.t == "Header" and block.level == 1 then
       if has_class(block, "plain") or has_class(block, "no-card") then
         out:insert(block)
         index = index + 1
-        goto continue
-      end
-
-      local title = inlines_to_typst(block.content)
-      local section = pandoc.List()
-      index = index + 1
-
-      while index <= #blocks do
-        local next_block = blocks[index]
-        if next_block.t == "Header" and next_block.level == 1 then
-          break
-        end
-        if next_block.t == "Div" and has_class(next_block, "poster-column") then
-          break
-        end
-
-        append_all(section, transform_blocks(pandoc.List({ next_block }), meta))
+      else
+        local title = inlines_to_typst(block.content)
+        local role = card_role(block)
+        local variant = variant_of(block)
+        local section = pandoc.List()
         index = index + 1
+
+        while index <= #blocks do
+          local next_block = blocks[index]
+          if next_block.t == "Header" and next_block.level == 1 then break end
+          if next_block.t == "Div" and has_class(next_block, "poster-column") then break end
+          append_all(section, transform_blocks(pandoc.List({ next_block }), meta))
+          index = index + 1
+        end
+
+        local start = string.format(
+          '#poster-card(title: [%s], role: "%s", variant: "%s")[',
+          title, role, variant
+        )
+        append_all(out, raw_wrap(start, section, "]"))
       end
 
-      local card_variant = variant(block)
-      local start = "#poster-card("
-        .. "title: [" .. title .. "], "
-        .. "fill: " .. card_fill(meta) .. ", "
-        .. "stroke-color: " .. card_stroke(meta) .. ", "
-        .. "header-fill: " .. variant_fill(meta, card_variant) .. ", "
-        .. "header-text: " .. variant_text(meta, card_variant) .. ", "
-        .. "radius: " .. card_radius(meta) .. ", "
-        .. "body-inset: " .. card_body_inset(meta, block) .. ", "
-        .. "gap: " .. card_gap(meta, block) .. ", "
-        .. "title-size: " .. card_title_size(meta, block)
-        .. ")["
-      append_all(out, raw_wrap(start, section, "]"))
     elseif block.t == "Div" and has_class(block, "poster-callout") then
       local content = transform_blocks(block.content, meta)
-      local callout_variant = variant(block)
-      local start = "#poster-callout("
-        .. "fill: " .. meta_expr(meta, "poster-callout-bg", "white") .. ", "
-        .. "text-fill: " .. meta_expr(meta, "poster-callout-fg", "rgb(\"#17212b\")") .. ", "
-        .. "stroke-color: " .. meta_expr(meta, "poster-callout-stroke", card_stroke(meta)) .. ", "
-        .. "accent: " .. meta_expr(meta, "poster-callout-accent", variant_fill(meta, callout_variant)) .. ", "
-        .. "radius: " .. meta_expr(meta, "poster-callout-radius", card_radius(meta)) .. ", "
-        .. "text-size: " .. callout_text_size(meta, block)
-        .. ")["
+      local role = callout_role(block)
+      local variant = variant_of(block)
+      local start = string.format(
+        '#poster-callout(role: "%s", variant: "%s")[',
+        role, variant
+      )
       append_all(out, raw_wrap(start, content, "]"))
       index = index + 1
+
     elseif block.t == "Div" then
       block.content = transform_blocks(block.content, meta)
       out:insert(block)
       index = index + 1
+
     else
       out:insert(block)
       index = index + 1
     end
-
-    ::continue::
   end
 
   return out
 end
 
-function wrap_columns(column_divs, meta)
+wrap_columns = function(column_divs, meta)
   local blocks = pandoc.List()
-  local gutter = meta_string(meta, "poster-column-gap") or meta_string(meta, "column-gap") or "0.5in"
-  local feature_radius = meta_expr(meta, "poster-feature-radius", meta_expr(meta, "poster-corner-radius", "7pt"))
-  local feature_inset = meta_expr(meta, "poster-feature-inset", "0.38in")
+  local widths = column_widths_literal(meta, #column_divs)
 
-  blocks:insert(pandoc.RawBlock("typst", "#poster-grid(\n  columns: " .. columns_expr(meta, #column_divs) .. ",\n  gutter: " .. gutter .. ",\n  ["))
+  blocks:insert(pandoc.RawBlock("typst",
+    "#poster-grid(\n  columns: " .. widths .. ",\n  ["))
 
   for column_index, div in ipairs(column_divs) do
     local featured = has_class(div, "poster-feature") or has_class(div, "feature")
+    local variant = variant_of(div)
 
     if featured then
-      blocks:insert(pandoc.RawBlock("typst", "#poster-feature-column(fill: " .. feature_fill(meta, div) .. ", inset: " .. feature_inset .. ", radius: " .. feature_radius .. ")["))
+      blocks:insert(pandoc.RawBlock("typst",
+        '#poster-feature-column(variant: "' .. variant .. '")['))
     end
 
     append_all(blocks, div.content)
@@ -339,9 +330,15 @@ function wrap_columns(column_divs, meta)
   return blocks
 end
 
-function Pandoc(doc)
-  local found_columns = false
+-- ---------------------------------------------------------------------------
+-- Entry point
+-- ---------------------------------------------------------------------------
 
+function Pandoc(doc)
+  local meta = doc.meta
+
+  -- Detect explicit column layout
+  local found_columns = false
   for _, block in ipairs(doc.blocks) do
     if block.t == "Div" and has_class(block, "poster-column") then
       found_columns = true
@@ -349,11 +346,62 @@ function Pandoc(doc)
     end
   end
 
-  doc.blocks = transform_blocks(doc.blocks, doc.meta)
-
-  if found_columns then
-    doc.meta["poster-manual-columns"] = pandoc.MetaBool(true)
+  -- Resolve paper size into width/height meta the partial can splice in.
+  -- (Pandoc templates don't accept underscore-leading variable names, so use
+  -- the `resolved-` prefix for derived values.)
+  --
+  -- Values that contain Typst syntax like `(`, `:`, `..` must be emitted as
+  -- RawInline("typst", ...) — MetaString routes through Markdown/Typst
+  -- escaping and would backslash-escape parens.
+  local function raw_typst(s)
+    return pandoc.MetaInlines({ pandoc.RawInline("typst", s) })
   end
+
+  local pw, ph = resolve_paper_size(meta)
+  meta["resolved-poster-width"] = raw_typst(pw)
+  meta["resolved-poster-height"] = raw_typst(ph)
+
+  -- Column count for flow mode
+  meta["resolved-column-count"] = raw_typst(tostring(column_count(meta)))
+  meta["resolved-column-layout"] = pandoc.MetaString(found_columns and "manual" or "flow")
+
+  -- Build dict literals from nested YAML maps
+  meta["resolved-typography"] = raw_typst(map_to_dict_literal(meta["poster-typography"]))
+  meta["resolved-spacing"] = raw_typst(map_to_dict_literal(meta["poster-spacing"]))
+  meta["resolved-colors"] = raw_typst(map_to_dict_literal(meta["poster-colors"]))
+
+  -- Resolve institutions: prefer explicit `institutions:`/`institution:`,
+  -- otherwise pull names from Quarto's canonicalized `affiliations` array
+  -- (each author's `affiliation: "..."` becomes a top-level affiliation entry
+  -- with a `name` field).
+  local inst_text = nil
+  local explicit = meta_list(meta, "institutions") or meta_list(meta, "institution")
+  if explicit and #explicit > 0 then
+    inst_text = table.concat(explicit, " · ")
+  else
+    local affs = meta["affiliations"]
+    if type(affs) == "table" then
+      local seen, names = {}, {}
+      for _, aff in ipairs(affs) do
+        local name = nil
+        if type(aff) == "table" then name = aff["name"] end
+        if name ~= nil then
+          local text = pandoc.utils.stringify(name)
+          if text ~= "" and not seen[text] then
+            seen[text] = true
+            table.insert(names, text)
+          end
+        end
+      end
+      if #names > 0 then inst_text = table.concat(names, " · ") end
+    end
+  end
+  if inst_text then
+    meta["resolved-institutions"] = pandoc.MetaInlines({ pandoc.Str(inst_text) })
+  end
+
+  doc.meta = meta
+  doc.blocks = pandoc.Blocks(transform_blocks(doc.blocks, meta))
 
   return doc
 end

@@ -9,30 +9,15 @@ author:
 brand: _brand.yml
 format:
   academic-poster-typst:
-    poster-width: 56in
-    poster-height: 31.5in
+    poster-size: 56x31.5in
+    fontsize: 18pt
+    poster-scale: compact
+    poster-columns: [0.95, 1.35, 0.95]
     margin:
       x: 0.55in
       y: 0.45in
-    fontsize: 18pt
-    poster-column-gap: 0.55in
-    poster-column-widths: [0.95fr, 1.35fr, 0.95fr]
     poster-header-height: 15%
     poster-footer-height: 6%
-    poster-row-gap: 0.35in
-    poster-corner-radius: 7pt
-    poster-feature-inset: 0.32in
-    poster-title-size: 1.42em
-    poster-subtitle-size: 0.66em
-    poster-author-size: 0.52em
-    poster-institution-size: 0.46em
-    poster-h1-size: 0.78em
-    poster-h2-size: 0.72em
-    poster-h3-size: 0.68em
-    poster-card-body-inset: "(x: 0.42em, y: 0.28em)"
-    poster-card-gap: 0.26em
-    poster-callout-size: 0.78em
-    poster-callout-large-size: 0.9em
     footer-left: "Scan for preprint"
     footer-center: "Heart Rhythm Scientific Sessions 2026"
     footer-right: "#HRS2026"
@@ -154,7 +139,7 @@ The central `.poster-feature` column behaves like a revealjs slide modifier: add
 ![](figures/event-proportions.png){width=100%}
 
 ::: {.poster-callout .secondary}
-Poster-wide options such as `poster-h1-size`, `poster-h2-size`, `poster-card-gap`, and `poster-callout-size` control typography and spacing for the whole document.
+A single `poster-scale: compact | default | spacious` knob rescales every typographic role at once.
 :::
 
 :::
