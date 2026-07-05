@@ -1,0 +1,53 @@
+---
+title: "Preset Options Smoke Test"
+subtitle: "One template, layered options, local overrides"
+author:
+  - name: "First Author"
+    affiliation: "Department, Institution"
+brand: _brand.yml
+format:
+  academic-poster-typst:
+    poster-preset: methods-heavy
+    poster-style: minimal
+    poster-size: 36x24in
+    margin:
+      x: 0.35in
+      y: 0.3in
+    poster-spacing:
+      header-padding:
+        x: 0.32in
+        y: 0.18in
+    footer-center: "Preset fixture"
+execute:
+  echo: false
+---
+
+::: {.poster-column}
+
+# Question {.compact}
+
+Can a poster start from a named preset while still keeping local edits readable in YAML?
+
+# Approach {.compact}
+
+- `poster-preset: methods-heavy` selects a two-column, compact base.
+- `poster-style: minimal` swaps the visual treatment.
+- `poster-spacing.header-padding` checks nested YAML overrides.
+
+:::
+
+::: {.poster-column}
+
+# Result {.compact .secondary}
+
+The document-level options stay short, and the Markdown body remains ordinary poster content.
+
+::: {.poster-callout .light}
+Local YAML wins after the preset bundle.
+:::
+
+# Next Step {.compact}
+
+Use this file as a quick smoke test when changing preset resolution or Typst merge logic.
+
+:::

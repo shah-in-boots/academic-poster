@@ -5,9 +5,8 @@ A Quarto Typst custom format for academic research posters. The whole thing is p
 ```yaml
 format:
   academic-poster-typst:
+    poster-preset: results-first
     poster-size: 48x36in
-    fontsize: 22pt
-    poster-scale: default
 ```
 
 ```bash
@@ -26,6 +25,8 @@ your-poster.qmd ──► poster-columns.lua ──► typst-show.typ ──► 
 1. **`your-poster.qmd`** — Quarto/Markdown source. YAML keys drive layout; level-1 headings become cards; `.poster-column` / `.poster-callout` / `.poster-feature` divs structure the page.
 2. **`poster-columns.lua`** — Pandoc filter that:
    - Resolves `poster-size` aliases (`a0`, `48x36in`, ...) into width/height.
+   - Resolves `poster-preset`, `poster-layout`, `poster-style`, and `poster-density` into concrete options.
+   - Chooses a paper-aware automatic base font size unless `fontsize` is set.
    - Wraps level-1 headings into `#poster-card(role: ..., variant: ...)[...]` calls.
    - Converts `.poster-column` Divs into a `#poster-grid(...)` call.
    - Builds `typography:`, `spacing:`, `colors:` dict literals from nested YAML maps and stashes them as `resolved-*` meta values.
@@ -33,23 +34,63 @@ your-poster.qmd ──► poster-columns.lua ──► typst-show.typ ──► 
 3. **`typst-show.typ`** — Pandoc template partial that emits a single `#show: poster.with(...)` call, splicing in the resolved meta.
 4. **`typst-template.typ`** — All defaults, helpers, and the top-level `poster()` show rule live here.
 
-When you want to change a default, you change exactly one place: [_extensions/academic-poster/typst-template.typ](_extensions/academic-poster/typst-template.typ) (the three `DEFAULT-*` dicts at the top).
+When you want to change a visual default, you change exactly one place: [_extensions/academic-poster/typst-template.typ](_extensions/academic-poster/typst-template.typ) (`DEFAULT-*` and `*-PRESETS` live together near the top).
+
+---
+
+## Preset Model
+
+There is one Typst rendering template. Presets are just named option bundles layered before local YAML overrides:
+
+```
+template defaults -> poster-preset -> poster-layout/poster-style/poster-density -> local overrides
+```
+
+Start with a high-level preset:
+
+```yaml
+format:
+  academic-poster-typst:
+    poster-preset: results-first
+```
+
+Then override only what this poster needs:
+
+```yaml
+format:
+  academic-poster-typst:
+    poster-preset: results-first
+    poster-columns: [1, 1, 1]
+    poster-colors:
+      primary: "#1a3a6e"
+```
+
+### Available presets
+
+| Key | Values | What it changes |
+|---|---|---|
+| `poster-preset` | `default`, `clean`, `classic`, `results-first`, `methods-heavy`, `minimal` | A shortcut for layout + style + density |
+| `poster-layout` | `three-column`, `two-column`, `feature-center`, `feature-right`, `flow` | Column defaults and structural sizing |
+| `poster-style` | `clean`, `classic`, `bold`, `minimal` | Typography, color, corner, and stroke treatment |
+| `poster-density` | `compact`, `default`, `spacious` | Base type scale and a few spacing defaults |
+
+`poster-scale` still works as a backward-compatible alias for `poster-density`.
 
 ---
 
 ## Sizing Model
 
-Everything typographic is expressed as a multiple of the document `fontsize`. Everything structural is expressed in absolute lengths or container percentages. There are three unit families and they map to roles cleanly:
+Everything typographic is expressed as a multiple of a base font size. By default, that base size is chosen from the poster's shorter paper side; set `fontsize:` only when you want to override it. Everything structural is expressed in absolute lengths or container percentages.
 
 | Use | Unit | Why |
 |---|---|---|
-| Type sizes (title, body, card titles, callouts) | `em` | Scales with `fontsize`; one knob changes everything |
+| Type sizes (title, body, card titles, callouts) | `em` | Scales with the automatic base size and `poster-density` |
 | Per-element padding and gaps around text | `em` | Stays proportional to type size |
 | Poster paper dimensions, margins, column gutters | `in` / `cm` / `mm` / `pt` | Typst `%` does not work for `page` size |
 | Header height, footer height, logo width inside header | `%` | Container-relative; lets you target a fraction of the body grid |
 | Column widths | `fr` (or bare number, auto-suffixed) | Typst grid fractional units |
 
-A single knob — `poster-scale: compact | default | spacious` — multiplies every `em` typography value at once.
+The automatic base size is clamped to a practical range, then `poster-density: compact | default | spacious` adjusts it. Normal body text and every `em` typography role move together.
 
 ### The typography roles
 
@@ -68,7 +109,7 @@ Defined in `DEFAULT-TYPOGRAPHY` in [_extensions/academic-poster/typst-template.t
 | `callout` | 1.0em | Default `.poster-callout` text |
 | `callout-large` | 1.2em | `.poster-callout.large` |
 | `callout-compact` | 0.86em | `.poster-callout.compact` |
-| `body` | 1em | Body paragraph text |
+| `body` | 1em | Body text anchor |
 | `h2` | 0.95em | Plain-mode level-2 heading |
 | `h3` | 0.88em | Plain-mode level-3 heading |
 
@@ -79,7 +120,7 @@ Use `poster-typography:` (a YAML map) for one-off tweaks. Values must include a 
 ```yaml
 format:
   academic-poster-typst:
-    poster-scale: default
+    poster-density: default
     poster-typography:
       title: 2.8em
       card-title-large: 1.4em
@@ -147,6 +188,17 @@ Headline result in one sentence.
 
 ## YAML Reference
 
+### Presets
+
+```yaml
+poster-preset: results-first  # default | clean | classic | results-first | methods-heavy | minimal
+poster-layout: feature-center # three-column | two-column | feature-center | feature-right | flow
+poster-style: bold            # clean | classic | bold | minimal
+poster-density: compact       # compact | default | spacious
+```
+
+All four keys are optional. `poster-preset` supplies a starting bundle; the other three keys override parts of that bundle.
+
 ### Paper
 
 ```yaml
@@ -163,6 +215,7 @@ margin:
 ### Body layout
 
 ```yaml
+poster-layout: feature-center   # three-column | two-column | feature-center | feature-right | flow
 poster-columns: [1, 1.3, 1]   # widths in fr (bare numbers => Nfr)
 # or just a count for equal columns:
 poster-columns: 3
@@ -176,10 +229,12 @@ poster-logo-height: 86%       # % of the header strip
 ### Typography
 
 ```yaml
-fontsize: 22pt                # Quarto-native; the anchor for every em ratio
 mainfont: "Libertinus Serif"  # Quarto-native
 
-poster-scale: default         # compact | default | spacious
+poster-density: default       # compact | default | spacious
+poster-scale: default         # backward-compatible alias for poster-density
+fontsize: 34pt                # optional: override the automatic base size
+poster-font-size: 34pt        # equivalent poster-specific alias
 poster-typography:            # advanced per-key override
   title: 2.8em
   card-title-compact: 0.78em
@@ -236,6 +291,12 @@ quarto render example.qmd
 
 The example uses R + ggplot2 to generate two PNGs in `figures/`, then assembles them with a feature column.
 
+For a no-code preset smoke test:
+
+```bash
+quarto render preset-options.qmd
+```
+
 ### Start a new poster from the template
 
 ```bash
@@ -252,6 +313,7 @@ format:
 ### Two-column poster
 
 ```yaml
+poster-layout: two-column
 poster-columns: [1, 1]
 ```
 
@@ -283,7 +345,21 @@ poster-colors:
 ### A more compact poster (tighter type, same dimensions)
 
 ```yaml
-poster-scale: compact
+poster-density: compact
+```
+
+### Results-first poster
+
+```yaml
+poster-preset: results-first
+```
+
+This starts with a wider center column, bold styling, and compact density. You can still override the pieces:
+
+```yaml
+poster-preset: results-first
+poster-style: clean
+poster-columns: [1, 1.15, 1]
 ```
 
 ### One specific card title is too big
@@ -300,7 +376,7 @@ poster-typography:
 - **No automatic column balancing across `.poster-column` Divs.** Each column gets the content you place in it; if one runs short, the bottom of that column is blank. (Use `poster-columns: 3` without explicit Divs if you want Typst's flowing columns instead.)
 - **No bibliography styling yet.** Quarto's citeproc still works but the bibliography card has no custom rendering. Wrap it in a `.compact` section if you use it.
 - **Brand colors only read 6 slots** (`primary`, `secondary`, `tertiary` → accent, `light`, `background`, `foreground`). Other brand keys are ignored.
-- **`a0`/`a1`/`a2`/`a3` are the only paper presets.** US-Letter-derived sizes need explicit `WxH<unit>`.
+- **A-series sizes are the only paper presets.** US-Letter-derived sizes need explicit `WxH<unit>`.
 - **Feature columns don't yet expose individual padding.** `poster-spacing.feature-inset` is global.
 - **Heading levels 4+ have no custom rendering.**
 
@@ -316,4 +392,5 @@ poster-typography:
 | [_extensions/academic-poster/poster-columns.lua](_extensions/academic-poster/poster-columns.lua) | Pandoc AST → structural Typst calls |
 | [_extensions/academic-poster/template.qmd](_extensions/academic-poster/template.qmd) | Starter copied by `quarto use template` |
 | [example.qmd](example.qmd) | Render test and starting example |
+| [preset-options.qmd](preset-options.qmd) | Small no-code smoke test for presets and nested overrides |
 | [_brand.yml](_brand.yml) | Brand color palette |

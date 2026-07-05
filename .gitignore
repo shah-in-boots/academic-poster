@@ -1,7 +1,15 @@
 .quarto/
 example.pdf
 example.typ
+example.typst.md
+preset-options.pdf
+preset-options.typ
+preset-options.knit.md
+preset-options.typst.md
 /typst-template.typ
 /figures/
+/examples/*.pdf
+/examples/*.typ
+/examples/*.knit.md
 
 /.luarc.json

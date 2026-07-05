@@ -13,7 +13,7 @@
 //   - header-height, footer-height, logo-width: % of the body grid (container)
 
 // ---------------------------------------------------------------------------
-// Defaults
+// Defaults and presets
 // ---------------------------------------------------------------------------
 
 #let DEFAULT-TYPOGRAPHY = (
@@ -75,10 +75,152 @@
   "on-background": rgb("#17212b"),
 )
 
-#let SCALE-PRESETS = (
-  compact: 0.88,
-  default: 1.0,
-  spacious: 1.14,
+#let STYLE-PRESETS = (
+  clean: (
+    typography: (:),
+    spacing: (:),
+    colors: (:),
+  ),
+  classic: (
+    typography: (
+      title: 2.3em,
+      subtitle: 0.95em,
+      "card-title": 0.96em,
+    ),
+    spacing: (
+      "corner-radius": 3pt,
+      "feature-radius": 4pt,
+    ),
+    colors: (
+      primary: rgb("#243b53"),
+      secondary: rgb("#102a43"),
+      accent: rgb("#d9e2ec"),
+      light: rgb("#f0f4f8"),
+      stroke: rgb("#bcccdc"),
+      "on-accent": rgb("#102a43"),
+      "on-light": rgb("#102a43"),
+    ),
+  ),
+  bold: (
+    typography: (
+      title: 2.55em,
+      subtitle: 1.04em,
+      "card-title": 1.04em,
+      "card-title-large": 1.24em,
+    ),
+    spacing: (
+      "corner-radius": 7pt,
+      "feature-radius": 9pt,
+    ),
+    colors: (
+      primary: rgb("#b01c32"),
+      secondary: rgb("#6f1020"),
+      accent: rgb("#f4c7cf"),
+      light: rgb("#f8e8eb"),
+      stroke: rgb("#ead8dc"),
+    ),
+  ),
+  minimal: (
+    typography: (
+      title: 2.25em,
+      subtitle: 0.92em,
+      authors: 0.72em,
+      institutions: 0.56em,
+      "card-title": 0.92em,
+    ),
+    spacing: (
+      "corner-radius": 2pt,
+      "feature-radius": 2pt,
+      "card-header-inset": (x: 0.36em, y: 0.22em),
+    ),
+    colors: (
+      primary: rgb("#202124"),
+      secondary: rgb("#3c4043"),
+      accent: rgb("#e8eaed"),
+      light: rgb("#f8f9fa"),
+      stroke: rgb("#dadce0"),
+      "on-accent": rgb("#202124"),
+      "on-light": rgb("#202124"),
+    ),
+  ),
+)
+
+#let LAYOUT-PRESETS = (
+  "three-column": (
+    "header-height": 15%,
+    "footer-height": 7%,
+    "logo-width": 14%,
+    "logo-height": 86%,
+    "footer-logo-height": 70%,
+    spacing: (:),
+  ),
+  "two-column": (
+    "header-height": 14%,
+    "footer-height": 6%,
+    "logo-width": 13%,
+    "logo-height": 84%,
+    "footer-logo-height": 70%,
+    spacing: (
+      "column-gap": 0.62in,
+    ),
+  ),
+  "feature-center": (
+    "header-height": 15%,
+    "footer-height": 6%,
+    "logo-width": 14%,
+    "logo-height": 86%,
+    "footer-logo-height": 70%,
+    spacing: (
+      "column-gap": 0.55in,
+      "feature-inset": 0.38in,
+    ),
+  ),
+  "feature-right": (
+    "header-height": 15%,
+    "footer-height": 6%,
+    "logo-width": 14%,
+    "logo-height": 86%,
+    "footer-logo-height": 70%,
+    spacing: (
+      "column-gap": 0.55in,
+      "feature-inset": 0.38in,
+    ),
+  ),
+  flow: (
+    "header-height": 15%,
+    "footer-height": 7%,
+    "logo-width": 14%,
+    "logo-height": 86%,
+    "footer-logo-height": 70%,
+    spacing: (:),
+  ),
+)
+
+#let DENSITY-PRESETS = (
+  compact: (
+    "type-scale": 0.88,
+    spacing: (
+      "row-gap": 0.28in,
+      "column-gap": 0.42in,
+      "card-gap": 0.24em,
+      "card-gap-compact": 0.18em,
+      "callout-gap": 0.22em,
+    ),
+  ),
+  default: (
+    "type-scale": 1.0,
+    spacing: (:),
+  ),
+  spacious: (
+    "type-scale": 1.14,
+    spacing: (
+      "row-gap": 0.45in,
+      "column-gap": 0.65in,
+      "card-gap": 0.42em,
+      "card-gap-compact": 0.3em,
+      "callout-gap": 0.4em,
+    ),
+  ),
 )
 
 // ---------------------------------------------------------------------------
@@ -93,18 +235,14 @@
   let result = defaults
   if override == none { return result }
   for (k, v) in override {
-    result.insert(k, v)
+    let current = result.at(k, default: none)
+    if current != none and type(current) == dictionary and type(v) == dictionary {
+      result.insert(k, _merge(current, v))
+    } else {
+      result.insert(k, v)
+    }
   }
   result
-}
-
-#let _scale-typography(typo, factor) = {
-  if factor == 1.0 { return typo }
-  let scaled = (:)
-  for (k, v) in typo {
-    scaled.insert(k, v * factor)
-  }
-  scaled
 }
 
 #let _has-content(value) = value != none and repr(value) != "[]"
@@ -371,29 +509,68 @@
   margin: (x: 1in, y: 0.75in),
   column-layout: "flow",
   column-count: 3,
+  layout: "three-column",
 
   // Typography knobs (Quarto-native)
   font-family: "Libertinus Serif",
   font-size: 22pt,
   line-spacing: 1.15em,
 
-  // Single-knob preset + per-key overrides
-  scale: "default",
+  // Presets + per-key overrides
+  style: "clean",
+  density: "default",
+  scale: none,
   typography: (:),
   spacing: (:),
   colors: (:),
 
   // Structural rows
-  header-height: 17%,
-  footer-height: 8%,
-  logo-width: 16%,
-  logo-height: 86%,
-  footer-logo-height: 70%,
+  header-height: none,
+  footer-height: none,
+  logo-width: none,
+  logo-height: none,
+  footer-logo-height: none,
 ) = {
-  let factor = SCALE-PRESETS.at(scale, default: 1.0)
-  let merged-typo = _scale-typography(_merge(DEFAULT-TYPOGRAPHY, typography), factor)
-  let merged-spacing = _merge(DEFAULT-SPACING, spacing)
-  let merged-colors = _merge(DEFAULT-COLORS, colors)
+  let layout-preset = LAYOUT-PRESETS.at(layout, default: LAYOUT-PRESETS.at("three-column"))
+  let style-preset = STYLE-PRESETS.at(style, default: STYLE-PRESETS.at("clean"))
+  let density-name = if scale == none { density } else { scale }
+  let density-preset = DENSITY-PRESETS.at(density-name, default: DENSITY-PRESETS.at("default"))
+
+  let merged-typo = _merge(
+    _merge(DEFAULT-TYPOGRAPHY, style-preset.at("typography", default: (:))),
+    typography,
+  )
+  let merged-spacing = _merge(
+    _merge(
+      _merge(
+        _merge(DEFAULT-SPACING, layout-preset.at("spacing", default: (:))),
+        style-preset.at("spacing", default: (:)),
+      ),
+      density-preset.at("spacing", default: (:)),
+    ),
+    spacing,
+  )
+  let merged-colors = _merge(
+    _merge(DEFAULT-COLORS, style-preset.at("colors", default: (:))),
+    colors,
+  )
+  let base-font-size = font-size * density-preset.at("type-scale", default: 1.0)
+
+  let resolved-header-height = if header-height == none {
+    layout-preset.at("header-height", default: 15%)
+  } else { header-height }
+  let resolved-footer-height = if footer-height == none {
+    layout-preset.at("footer-height", default: 7%)
+  } else { footer-height }
+  let resolved-logo-width = if logo-width == none {
+    layout-preset.at("logo-width", default: 14%)
+  } else { logo-width }
+  let resolved-logo-height = if logo-height == none {
+    layout-preset.at("logo-height", default: 86%)
+  } else { logo-height }
+  let resolved-footer-logo-height = if footer-logo-height == none {
+    layout-preset.at("footer-logo-height", default: 70%)
+  } else { footer-logo-height }
 
   _typo.update(merged-typo)
   _spacing.update(merged-spacing)
@@ -406,7 +583,8 @@
     fill: merged-colors.background,
     numbering: none,
   )
-  set text(font: font-family, size: font-size, fill: merged-colors.foreground)
+  set text(font: font-family, size: base-font-size, fill: merged-colors.foreground)
+  set text(size: merged-typo.at("body"))
   set par(justify: false, leading: line-spacing)
 
   // Plain-mode (.plain / .no-card) headings — Lua bypasses card wrapping for these
@@ -445,7 +623,7 @@
     block(width: 100%, height: 100%)[
       #grid(
         columns: (1fr,),
-        rows: (header-height, 1fr, footer-height),
+        rows: (resolved-header-height, 1fr, resolved-footer-height),
         row-gutter: s.at("row-gap"),
         poster-header(
           title: title,
@@ -454,8 +632,8 @@
           institutions: institutions,
           logo-left: logo-left,
           logo-right: logo-right,
-          logo-width: logo-width,
-          logo-height: logo-height,
+          logo-width: resolved-logo-width,
+          logo-height: resolved-logo-height,
         ),
         block(width: 100%, height: 100%)[
           #poster-body(body, column-layout: column-layout, column-count: column-count)
@@ -466,7 +644,7 @@
           footer-right: footer-right,
           footer-logo-left: footer-logo-left,
           footer-logo-right: footer-logo-right,
-          logo-height: footer-logo-height,
+          logo-height: resolved-footer-logo-height,
         ),
       )
     ]

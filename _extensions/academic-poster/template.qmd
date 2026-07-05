@@ -9,13 +9,10 @@ author:
 brand: _brand.yml
 format:
   academic-poster-typst:
+    # Start with a preset, then override only what this poster needs.
+    poster-preset: results-first
     # Paper: a preset ("a0", "a1", "a2") or "WxH<unit>" like "48x36in", "56x31.5in"
     poster-size: 48x36in
-    fontsize: 22pt
-    # Single typography knob: compact | default | spacious
-    poster-scale: default
-    # Column widths in fractional units (bare numbers => "Nfr")
-    poster-columns: [1, 1, 1]
     margin:
       x: 0.6in
       y: 0.5in

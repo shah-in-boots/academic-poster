@@ -33,16 +33,18 @@
   // Body layout
   column-layout: "$resolved-column-layout$",
   column-count: $resolved-column-count$,
+  layout: "$resolved-poster-layout$",
 
   // Quarto-native typography knobs
   font-family: "$if(mainfont)$$mainfont$$else$Libertinus Serif$endif$",
-  font-size: $if(fontsize)$$fontsize$$else$22pt$endif$,
+  font-size: $resolved-font-size$,
   line-spacing: $if(poster-line-spacing)$$poster-line-spacing$$else$1.15em$endif$,
 
-  // One-knob scale + per-key override dicts (built by the Lua filter).
+  // Presets + per-key override dicts (built by the Lua filter).
   // The colors dict pulls brand-color values first, then spreads user
   // `poster-colors:` overrides on top.
-  scale: "$if(poster-scale)$$poster-scale$$else$default$endif$",
+  style: "$resolved-poster-style$",
+  density: "$resolved-poster-density$",
   typography: $resolved-typography$,
   spacing: $resolved-spacing$,
   colors: (
@@ -56,9 +58,9 @@
   ),
 
   // Structural rows (these accept % of the body grid)
-  header-height: $if(poster-header-height)$$poster-header-height$$else$15%$endif$,
-  footer-height: $if(poster-footer-height)$$poster-footer-height$$else$7%$endif$,
-  logo-width: $if(poster-logo-width)$$poster-logo-width$$else$14%$endif$,
-  logo-height: $if(poster-logo-height)$$poster-logo-height$$else$86%$endif$,
-  footer-logo-height: $if(poster-footer-logo-height)$$poster-footer-logo-height$$else$70%$endif$,
+  header-height: $if(poster-header-height)$$poster-header-height$$else$none$endif$,
+  footer-height: $if(poster-footer-height)$$poster-footer-height$$else$none$endif$,
+  logo-width: $if(poster-logo-width)$$poster-logo-width$$else$none$endif$,
+  logo-height: $if(poster-logo-height)$$poster-logo-height$$else$none$endif$,
+  footer-logo-height: $if(poster-footer-logo-height)$$poster-footer-logo-height$$else$none$endif$,
 )

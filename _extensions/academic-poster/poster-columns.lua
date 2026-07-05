@@ -2,11 +2,13 @@
 --
 -- Responsibilities (kept deliberately narrow):
 --   1. Resolve `poster-size` / paper presets into width + height.
---   2. Build typography/spacing/colors dict literals from nested YAML maps
+--   2. Resolve preset options into layout/style/density choices.
+--   3. Resolve an automatic paper-aware base font size.
+--   4. Build typography/spacing/colors dict literals from nested YAML maps
 --      so typst-show.typ can splice them in verbatim.
---   3. Convert `.poster-column` Divs into a `#poster-grid(...)` call.
---   4. Wrap level-1 headings in `#poster-card(role: ..., variant: ...)[...]`.
---   5. Convert `.poster-callout` Divs into `#poster-callout(...)[...]`.
+--   5. Convert `.poster-column` Divs into a `#poster-grid(...)` call.
+--   6. Wrap level-1 headings in `#poster-card(role: ..., variant: ...)[...]`.
+--   7. Convert `.poster-callout` Divs into `#poster-callout(...)[...]`.
 --
 -- All sizing, color, and inset *defaults* live in typst-template.typ. This
 -- filter does not compute em values — it only decides which role a block
@@ -52,6 +54,130 @@ local function meta_list(meta, key)
   return { pandoc.utils.stringify(value) }
 end
 
+local function warn(message)
+  io.stderr:write("[academic-poster] " .. message .. "\n")
+end
+
+local function canonical(value)
+  if value == nil then return nil end
+  local key = tostring(value):lower()
+  key = key:gsub("^%s+", ""):gsub("%s+$", "")
+  key = key:gsub("_", "-"):gsub("%s+", "-")
+  if key == "" then return nil end
+  return key
+end
+
+-- ---------------------------------------------------------------------------
+-- Preset option resolution
+-- ---------------------------------------------------------------------------
+
+local LAYOUT_PRESETS = {
+  ["three-column"] = {count = 3, columns = {"1fr", "1fr", "1fr"}},
+  ["two-column"] = {count = 2, columns = {"1fr", "1fr"}},
+  ["feature-center"] = {count = 3, columns = {"0.95fr", "1.35fr", "0.95fr"}},
+  ["feature-right"] = {count = 3, columns = {"1fr", "1fr", "1.25fr"}},
+  ["flow"] = {count = 3},
+}
+
+local LAYOUT_ALIASES = {
+  ["3-column"] = "three-column",
+  ["3-col"] = "three-column",
+  ["three-col"] = "three-column",
+  ["three"] = "three-column",
+  ["2-column"] = "two-column",
+  ["2-col"] = "two-column",
+  ["two-col"] = "two-column",
+  ["two"] = "two-column",
+  ["feature"] = "feature-center",
+  ["results"] = "feature-center",
+  ["results-first"] = "feature-center",
+}
+
+local STYLE_PRESETS = {
+  clean = true,
+  classic = true,
+  bold = true,
+  minimal = true,
+}
+
+local STYLE_ALIASES = {
+  default = "clean",
+  result = "bold",
+  results = "bold",
+  ["results-first"] = "bold",
+}
+
+local DENSITY_PRESETS = {
+  compact = true,
+  default = true,
+  spacious = true,
+}
+
+local PRESET_OPTIONS = {
+  default = {layout = "three-column", style = "clean", density = "default"},
+  clean = {layout = "three-column", style = "clean", density = "default"},
+  classic = {layout = "three-column", style = "classic", density = "default"},
+  ["results-first"] = {layout = "feature-center", style = "bold", density = "compact"},
+  ["methods-heavy"] = {layout = "two-column", style = "clean", density = "compact"},
+  minimal = {layout = "three-column", style = "minimal", density = "default"},
+}
+
+local PRESET_ALIASES = {
+  results = "results-first",
+  feature = "results-first",
+  methods = "methods-heavy",
+}
+
+local function normalize_option(value, known, aliases, fallback, label)
+  local key = canonical(value)
+  if key == nil then return fallback end
+  key = aliases[key] or key
+  if known[key] ~= nil then return key end
+  warn("Unknown " .. label .. " '" .. tostring(value) .. "'; using '" .. fallback .. "'.")
+  return fallback
+end
+
+local function resolve_options(meta)
+  local preset_name = normalize_option(
+    meta_string(meta, "poster-preset"),
+    PRESET_OPTIONS,
+    PRESET_ALIASES,
+    "default",
+    "poster-preset"
+  )
+  local preset = PRESET_OPTIONS[preset_name]
+
+  local layout = normalize_option(
+    meta_string(meta, "poster-layout"),
+    LAYOUT_PRESETS,
+    LAYOUT_ALIASES,
+    preset.layout,
+    "poster-layout"
+  )
+  local style = normalize_option(
+    meta_string(meta, "poster-style"),
+    STYLE_PRESETS,
+    STYLE_ALIASES,
+    preset.style,
+    "poster-style"
+  )
+  local density_value = meta_string(meta, "poster-density") or meta_string(meta, "poster-scale")
+  local density = normalize_option(
+    density_value,
+    DENSITY_PRESETS,
+    {},
+    preset.density,
+    "poster-density"
+  )
+
+  return {
+    preset = preset_name,
+    layout = layout,
+    style = style,
+    density = density,
+  }
+end
+
 -- ---------------------------------------------------------------------------
 -- Paper size resolution
 -- ---------------------------------------------------------------------------
@@ -62,7 +188,9 @@ local PAPER_PRESETS = {
   ["a1"] = {width = "594mm", height = "841mm"},
   ["a1-landscape"] = {width = "841mm", height = "594mm"},
   ["a2"] = {width = "420mm", height = "594mm"},
+  ["a2-landscape"] = {width = "594mm", height = "420mm"},
   ["a3"] = {width = "297mm", height = "420mm"},
+  ["a3-landscape"] = {width = "420mm", height = "297mm"},
 }
 
 local function resolve_paper_size(meta)
@@ -78,6 +206,7 @@ local function resolve_paper_size(meta)
     if w and h and unit then
       return w .. unit, h .. unit
     end
+    warn("Could not parse poster-size '" .. size .. "'; using poster-width/poster-height or 48in x 36in.")
   end
 
   local width = meta_string(meta, "poster-width") or "48in"
@@ -86,8 +215,72 @@ local function resolve_paper_size(meta)
 end
 
 -- ---------------------------------------------------------------------------
+-- Paper-aware type size
+-- ---------------------------------------------------------------------------
+
+local UNIT_TO_INCHES = {
+  ["in"] = 1,
+  ["cm"] = 1 / 2.54,
+  ["mm"] = 1 / 25.4,
+  ["pt"] = 1 / 72,
+}
+
+local function length_to_inches(value)
+  if value == nil then return nil end
+  local raw = tostring(value):lower():gsub("%s+", "")
+  local n, unit = raw:match("^([%d%.]+)(%a+)$")
+  if n == nil or unit == nil or UNIT_TO_INCHES[unit] == nil then return nil end
+  return tonumber(n) * UNIT_TO_INCHES[unit]
+end
+
+local function format_pt(value)
+  local rounded = math.floor(value * 10 + 0.5) / 10
+  if rounded == math.floor(rounded) then
+    return tostring(math.floor(rounded)) .. "pt"
+  end
+  return tostring(rounded) .. "pt"
+end
+
+local function clamp(value, lower, upper)
+  if value < lower then return lower end
+  if value > upper then return upper end
+  return value
+end
+
+local function auto_font_size(width, height)
+  local w = length_to_inches(width)
+  local h = length_to_inches(height)
+  if w == nil or h == nil then return "36pt" end
+
+  -- A readable poster body size tracks the shorter paper side more reliably
+  -- than a fixed default. Density presets still apply after this base size.
+  local short_side = math.min(w, h)
+  return format_pt(clamp(short_side * 1.1, 24, 44))
+end
+
+local function resolve_font_size(meta, width, height)
+  local explicit =
+    meta_string(meta, "poster-font-size") or
+    meta_string(meta, "poster-fontsize") or
+    meta_string(meta, "fontsize")
+
+  if explicit and canonical(explicit) ~= "auto" then return explicit end
+  return auto_font_size(width, height)
+end
+
+-- ---------------------------------------------------------------------------
 -- Column widths
 -- ---------------------------------------------------------------------------
+
+local function equal_tracks(count)
+  local tracks = {}
+  for _ = 1, count do table.insert(tracks, "1fr") end
+  return tracks
+end
+
+local function tracks_literal(tracks)
+  return "(" .. table.concat(tracks, ", ") .. ")"
+end
 
 local function normalize_track(value)
   if value == nil or value == "" then return "1fr" end
@@ -96,29 +289,47 @@ local function normalize_track(value)
   return value .. "fr"
 end
 
-local function column_widths_literal(meta, count)
-  local widths = meta_list(meta, "poster-columns") or meta_list(meta, "poster-column-widths")
+local function explicit_column_widths(meta)
+  return meta_list(meta, "poster-columns") or meta_list(meta, "poster-column-widths")
+end
+
+local function column_widths_literal(meta, count, layout)
+  local widths = explicit_column_widths(meta)
   if widths == nil or #widths == 0 or (#widths == 1 and tonumber(widths[1])) then
-    -- single integer (column count) or absent -> equal columns
-    local n = count
-    if widths and #widths == 1 then n = tonumber(widths[1]) end
-    local tracks = {}
-    for _ = 1, n do table.insert(tracks, "1fr") end
-    return "(" .. table.concat(tracks, ", ") .. ")"
+    -- Single integer column counts always mean equal columns. If widths are
+    -- absent, layout presets may provide a more opinionated default.
+    if widths and #widths == 1 then
+      return tracks_literal(equal_tracks(tonumber(widths[1])))
+    end
+
+    local preset = LAYOUT_PRESETS[layout]
+    if preset and preset.columns and #preset.columns == count then
+      return tracks_literal(preset.columns)
+    end
+    if preset and preset.columns and #preset.columns ~= count then
+      warn("Layout '" .. layout .. "' defines " .. tostring(#preset.columns) ..
+        " columns but the document has " .. tostring(count) .. "; using equal widths.")
+    end
+    return tracks_literal(equal_tracks(count))
   end
 
   local tracks = {}
   for _, w in ipairs(widths) do table.insert(tracks, normalize_track(w)) end
-  return "(" .. table.concat(tracks, ", ") .. ")"
+  if count and #tracks ~= count then
+    warn("poster-columns defines " .. tostring(#tracks) ..
+      " widths but the document has " .. tostring(count) .. " .poster-column blocks.")
+  end
+  return tracks_literal(tracks)
 end
 
-local function column_count(meta)
-  local widths = meta_list(meta, "poster-columns") or meta_list(meta, "poster-column-widths")
+local function column_count(meta, layout)
+  local widths = explicit_column_widths(meta)
   if widths and #widths == 1 and tonumber(widths[1]) then
     return tonumber(widths[1])
   end
   if widths and #widths > 1 then return #widths end
-  return 3
+  local preset = LAYOUT_PRESETS[layout]
+  return (preset and preset.count) or 3
 end
 
 -- ---------------------------------------------------------------------------
@@ -128,8 +339,21 @@ end
 -- A value coming from YAML may look like a literal Typst expression (e.g.
 -- "1.1em", "rgb(\"#b01c32\")"), a color hex ("#b01c32"), or a bare number.
 -- This function emits the Typst-side representation.
+local map_to_dict_literal
+
+local function is_meta_map(value)
+  if type(value) ~= "table" then return false end
+  if value.t ~= nil and value.t ~= "MetaMap" then return false end
+  if #value > 0 then return false end
+  for k, _ in pairs(value) do
+    if k ~= "t" and k ~= "c" then return true end
+  end
+  return false
+end
+
 local function typst_value(raw)
   if raw == nil then return "none" end
+  if is_meta_map(raw) then return map_to_dict_literal(raw) end
   local s = pandoc.utils.stringify(raw)
   if s == "" then return "none" end
 
@@ -156,7 +380,7 @@ local function dict_key(k)
   return '"' .. k .. '"'
 end
 
-local function map_to_dict_literal(meta_value)
+map_to_dict_literal = function(meta_value)
   if meta_value == nil then return "(:)" end
   if type(meta_value) ~= "table" then return "(:)" end
 
@@ -300,7 +524,8 @@ end
 
 wrap_columns = function(column_divs, meta)
   local blocks = pandoc.List()
-  local widths = column_widths_literal(meta, #column_divs)
+  local layout = meta_string(meta, "resolved-poster-layout") or "three-column"
+  local widths = column_widths_literal(meta, #column_divs, layout)
 
   blocks:insert(pandoc.RawBlock("typst",
     "#poster-grid(\n  columns: " .. widths .. ",\n  ["))
@@ -334,17 +559,24 @@ end
 -- Entry point
 -- ---------------------------------------------------------------------------
 
-function Pandoc(doc)
-  local meta = doc.meta
-
-  -- Detect explicit column layout
-  local found_columns = false
-  for _, block in ipairs(doc.blocks) do
+local function contains_poster_column(blocks)
+  for _, block in ipairs(blocks) do
     if block.t == "Div" and has_class(block, "poster-column") then
-      found_columns = true
-      break
+      return true
+    end
+    if (block.t == "Div" or block.t == "BlockQuote") and type(block.content) == "table" then
+      if contains_poster_column(block.content) then return true end
     end
   end
+  return false
+end
+
+function Pandoc(doc)
+  local meta = doc.meta
+  local options = resolve_options(meta)
+
+  -- Detect explicit column layout
+  local found_columns = contains_poster_column(doc.blocks)
 
   -- Resolve paper size into width/height meta the partial can splice in.
   -- (Pandoc templates don't accept underscore-leading variable names, so use
@@ -360,9 +592,16 @@ function Pandoc(doc)
   local pw, ph = resolve_paper_size(meta)
   meta["resolved-poster-width"] = raw_typst(pw)
   meta["resolved-poster-height"] = raw_typst(ph)
+  meta["resolved-font-size"] = raw_typst(resolve_font_size(meta, pw, ph))
+
+  -- Resolved user-facing preset options
+  meta["resolved-poster-preset"] = pandoc.MetaString(options.preset)
+  meta["resolved-poster-layout"] = pandoc.MetaString(options.layout)
+  meta["resolved-poster-style"] = pandoc.MetaString(options.style)
+  meta["resolved-poster-density"] = pandoc.MetaString(options.density)
 
   -- Column count for flow mode
-  meta["resolved-column-count"] = raw_typst(tostring(column_count(meta)))
+  meta["resolved-column-count"] = raw_typst(tostring(column_count(meta, options.layout)))
   meta["resolved-column-layout"] = pandoc.MetaString(found_columns and "manual" or "flow")
 
   -- Build dict literals from nested YAML maps
